@@ -1,10 +1,9 @@
 require("dotenv").config(); // .env 파일 로드
 
 const ccxt = require("ccxt");
-const { saveCoins, deleteCoins, updateCoins, getAllCoins } = require("../db");
-const { logger, formatMessage } = require("../logger");
-const { writeValidSymbols } = require("../file");
-const cron = require("node-cron");
+const { saveCoins, deleteCoins, updateCoins, getAllCoins } = require("../../utils/db");
+const { logger, formatMessage } = require("../../utils/logger");
+const { writeValidSymbols, writeExchangeSymbols} = require("../../utils/file");
 
 const syncSymbols = async (currentValidSymbols, newValidSymbols) => {
   // 비교를 위해 심볼만 추출
@@ -107,6 +106,9 @@ const runSyncSymbol = async () => {
   // 2. 데이터 수집 워커가 읽을 코인 목록 파일을 쓴다.
   writeValidSymbols(newValidSymbols);
 
+  writeExchangeSymbols('upbit', newValidSymbols, 'KRW');
+  writeExchangeSymbols('binance', newValidSymbols, 'USDT');
+
   // 3. 데이터베이스에서 코인 목록 데이터를 조회한다.
   const currentValidSymbols = await getAllCoins();
 
@@ -115,17 +117,12 @@ const runSyncSymbol = async () => {
 };
 
 (async () => {
-  await runSyncSymbol();
-})();
-
-// 매일 정각 (00:00:00)
-cron.schedule("0 0 * * *", async () => {
-  logger.info("[코인 목록 동기화] 크론 작업 시작");
-
   try {
+    logger.info(`[심볼 최신화 워커] 실행`);
     await runSyncSymbol();
-    logger.info(`[코인 목록 동기화] 크론 완료`);
-  } catch (err) {
-    logger.error("[코인 목록 동기화] 실패 ", err);
+    process.exit(0);
+  } catch (e) {
+    logger.error(`[심볼 최신화 워커] 에러 발생: `, e);
+    process.exit(1);
   }
-});
+})();
