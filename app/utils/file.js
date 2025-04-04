@@ -19,6 +19,19 @@ const writeValidSymbols = (symbols) => {
   }
 };
 
+const writeExchangeSymbols = (exchange, data, quote) => {
+  try {
+    const PATH = path.resolve(__dirname, `../symbols/${exchange}-symbols.json`);
+    const symbols = data
+        .filter(({ symbol }) => !(quote === 'USDT' && symbol === 'USDT'))
+        .map(({ symbol }) => `${symbol}/${quote}`);
+
+    fs.writeFileSync(PATH, JSON.stringify(symbols, null, 2), "utf-8");
+  } catch (e) {
+    logger.error(`${exchange} 거래소에 대한 심볼 파일 저장 실패: `, e);
+  }
+};
+
 const readValidSymbols = (quote) => {
   try {
     const data = fs.readFileSync(SYMBOL_FILE_PATH, "utf-8");
@@ -32,4 +45,4 @@ const readValidSymbols = (quote) => {
   }
 };
 
-module.exports = { readValidSymbols, writeValidSymbols };
+module.exports = { readValidSymbols, writeValidSymbols, writeExchangeSymbols };

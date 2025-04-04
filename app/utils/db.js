@@ -25,7 +25,7 @@ pool.on("error", () => {
 // DB에 Ticker 데이터 저장
 const saveTicker = async (exchangeId, baseSymbol, quoteSymbol, data) => {
   const query = `
-    INSERT INTO temp_ticker (
+    INSERT INTO tickers (
       timestamp, exchange, base_symbol, quote_symbol, open, high, low, close, last, previous_close,
       change, percentage, base_volume, quote_volume
     ) 
@@ -63,7 +63,7 @@ const saveTicker = async (exchangeId, baseSymbol, quoteSymbol, data) => {
 // DB에 Trade 데이터 저장
 const saveTrade = async (exchangeId, baseSymbol, quoteSymbol, data) => {
   const query = `
-    INSERT INTO temp_trade (
+    INSERT INTO trades (
       timestamp, exchange, base_symbol, quote_symbol, trade_id, price, amount, cost, side
     ) 
     VALUES (to_timestamp($1 / 1000.0), $2, $3, $4, $5, $6, $7, $8, $9)
