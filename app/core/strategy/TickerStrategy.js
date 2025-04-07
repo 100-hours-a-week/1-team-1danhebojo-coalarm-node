@@ -1,5 +1,5 @@
 const { logger } = require("../../utils/logger");
-const { saveTicker } = require("../../utils/db");
+const { saveTicker, saveCandle } = require("../../utils/db");
 class TickerStrategy {
   async watch(exchange, symbols) {
     try {
@@ -11,9 +11,14 @@ class TickerStrategy {
     }
   }
 
-  async save(exchange, data) {
-    const [baseSymbol, quoteSymbol] = data.symbol.split("/");
-    await saveTicker(exchange.id, baseSymbol, quoteSymbol, data);
+  async saveTicker(exchange, ticker) {
+    const [baseSymbol, quoteSymbol] = ticker.symbol.split("/");
+    await saveTicker(exchange.id, baseSymbol, quoteSymbol, ticker);
+  }
+
+  async saveCandle(exchange, candle) {
+    const [baseSymbol, quoteSymbol] = candle.symbol.split("/");
+    await saveCandle(exchange.id, baseSymbol, quoteSymbol, candle);
   }
 }
 

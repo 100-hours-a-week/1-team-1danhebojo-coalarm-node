@@ -60,6 +60,38 @@ const saveTicker = async (exchangeId, baseSymbol, quoteSymbol, data) => {
   }
 };
 
+// DB에 Candle 데이터 저장
+const saveCandle = async (exchangeId, baseSymbol, quoteSymbol, data) => {
+  const query = `
+    INSERT INTO candles (
+      timestamp, exchange, base_symbol, quote_symbol, timeframe, open, high, low, close, volume
+    ) 
+    VALUES (to_timestamp($1 / 1000.0), $2, $3, $4, $5, $6, $7, $8, $9, $10)
+    ON CONFLICT (timestamp, exchange, base_symbol, quote_symbol, timeframe) DO NOTHING
+  `;
+
+  const values = [
+    data.timestamp,
+    exchangeId,
+    baseSymbol,
+    quoteSymbol,
+    data.timeframe,
+    data.open,
+    data.high,
+    data.low,
+    data.close,
+    data.volume
+  ];
+
+  try {
+    await pool.query(query, values);
+  } catch (error) {
+    logger.error(
+        formatMessage(messages.error.failInsertCandle, { error: error.message }),
+    );
+  }
+};
+
 // DB에 Trade 데이터 저장
 const saveTrade = async (exchangeId, baseSymbol, quoteSymbol, data) => {
   const query = `
@@ -171,6 +203,7 @@ module.exports = {
   pool,
   saveTicker,
   saveTrade,
+  saveCandle,
   getAllCoins,
   saveCoins,
   updateCoins,

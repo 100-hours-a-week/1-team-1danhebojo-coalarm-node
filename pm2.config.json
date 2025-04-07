@@ -3,7 +3,7 @@
     {
       "name": "upbit_ticker",
       "script": "./app/collectionWorker.js",
-      "args": "--exchange=upbit --type=ticker --symbolPath=./app/symbols/upbit-symbols.json",
+      "args": "--exchange=upbit --type=ticker --symbolPath=./app/symbols/upbit-symbols.json --candle=1m",
       "exec_mode": "fork",
       "instances": 1,
       "autorestart": true,

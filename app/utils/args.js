@@ -2,12 +2,14 @@ const minimist = require("minimist");
 const fs = require("fs");
 const path = require("path");
 
+const VALID_CANDLE_TYPES = ["1m", "1h", "1d"];
+
 const parseCliArgs = () => {
   const args = minimist(process.argv.slice(2));
 
   if (!args.exchange || !args.type || !args.symbolPath) {
     throw new Error(
-      "필수 인자 누락: --exchange, --type, --symbolPath 모두 필요합니다.",
+        "필수 인자 누락: --exchange, --type, --symbolPath 모두 필요합니다.",
     );
   }
 
@@ -33,7 +35,15 @@ const parseCliArgs = () => {
 
   symbols = symbols.map((s) => s.trim());
 
-  return { exchange, type, symbols };
+  let candle;
+  if (args.candle) {
+    if (!VALID_CANDLE_TYPES.includes(args.candle)) {
+      throw new Error(`--candle 값은 다음 중 하나여야 합니다: ${VALID_CANDLE_TYPES.join(", ")}`);
+    }
+    candle = args.candle;
+  }
+
+  return { exchange, type, symbols, candle };
 };
 
 module.exports = { parseCliArgs };

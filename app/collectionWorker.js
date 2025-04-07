@@ -20,9 +20,9 @@ const setupGracefulShutdown = (worker) => {
 
 (async () => {
   try {
-    const { exchange, type, symbols } = parseCliArgs();
+    const { exchange, type, symbols, candle } = parseCliArgs();
 
-    const worker = WorkerFactory.create(exchange, type, symbols);
+    const worker = WorkerFactory.create(exchange, type, symbols, candle);
     logger.info(
       `[데이터 수집 워커] 거래소: ${exchange} 데이터: ${type} 수집할 심볼의 개수: ${symbols.length}`,
     );
