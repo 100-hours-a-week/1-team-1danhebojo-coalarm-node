@@ -61,7 +61,7 @@ const saveTicker = async (exchangeId, baseSymbol, quoteSymbol, data) => {
 };
 
 // DB에 Candle 데이터 저장
-const saveCandle = async (exchangeId, baseSymbol, quoteSymbol, data) => {
+const saveCandle = async (exchangeId, baseSymbol, quoteSymbol, candle) => {
   const query = `
     INSERT INTO candles (
       timestamp, exchange, base_symbol, quote_symbol, timeframe, open, high, low, close, volume
@@ -71,17 +71,121 @@ const saveCandle = async (exchangeId, baseSymbol, quoteSymbol, data) => {
   `;
 
   const values = [
-    data.timestamp,
+    candle.timestamp,
     exchangeId,
     baseSymbol,
     quoteSymbol,
-    data.timeframe,
-    data.open,
-    data.high,
-    data.low,
-    data.close,
-    data.volume
+    candle.timeframe,
+    candle.open,
+    candle.high,
+    candle.low,
+    candle.close,
+    candle.volume
   ];
+
+  try {
+    await pool.query(query, values);
+  } catch (error) {
+    logger.error(
+        formatMessage(messages.error.failInsertCandle, { error: error.message }),
+    );
+  }
+};
+
+// const saveCandles = async (exchangeId, baseSymbol, quoteSymbol, timeframe, candles) => {
+//   if (!candles || candles.length === 0) return;
+//
+//   const size = 10;
+//   for (let i = 0; i < candles.length; i += size) {
+//     const chunk = candles.slice(i, i + size);
+//     const queryPrefix = `
+//       INSERT INTO candles (
+//         timestamp, exchange, base_symbol, quote_symbol, timeframe,
+//         open, high, low, close, volume
+//       ) VALUES
+//     `;
+//
+//     const valuePlaceholders = [];
+//     const values = [];
+//
+//     chunk.forEach((candle, index) => {
+//       const [timestamp, open, high, low, close, volume] = candle;
+//       const baseIdx = index * 10;
+//
+//       valuePlaceholders.push(`(
+//         to_timestamp($${baseIdx + 1} / 1000.0), $${baseIdx + 2}, $${baseIdx + 3}, $${baseIdx + 4}, $${baseIdx + 5},
+//         $${baseIdx + 6}, $${baseIdx + 7}, $${baseIdx + 8}, $${baseIdx + 9}, $${baseIdx + 10}
+//       )`);
+//
+//       values.push(
+//           timestamp,
+//           exchangeId,
+//           baseSymbol,
+//           quoteSymbol,
+//           timeframe,
+//           open,
+//           high,
+//           low,
+//           close,
+//           volume
+//       );
+//     });
+//
+//     const query = queryPrefix + valuePlaceholders.join(", ") + `
+//       ON CONFLICT (timestamp, exchange, base_symbol, quote_symbol, timeframe) DO NOTHING
+//     `;
+//
+//     try {
+//       await pool.query(query, values);
+//     } catch (error) {
+//       logger.error(
+//           formatMessage(messages.error.failInsertCandle, { error: error.message }),
+//       );
+//       console.error(error.stack);
+//     }
+//   }
+// };
+
+const saveCandles = async (exchangeId, baseSymbol, quoteSymbol, timeframe, candles) => {
+  if (!candles || candles.length === 0) return;
+
+  const queryPrefix = `
+    INSERT INTO candles (
+      timestamp, exchange, base_symbol, quote_symbol, timeframe,
+      open, high, low, close, volume
+    ) VALUES 
+  `;
+
+  // ($1, $2, ..., $10), ($11, $12, ..., $20), ...
+  const valuePlaceholders = [];
+  const values = [];
+
+  candles.forEach((candle, index) => {
+    const [timestamp, open, high, low, close, volume] = candle;
+    const baseIdx = index * 10;
+
+    valuePlaceholders.push(`(
+      to_timestamp($${baseIdx + 1} / 1000.0), $${baseIdx + 2}, $${baseIdx + 3}, $${baseIdx + 4}, $${baseIdx + 5},
+      $${baseIdx + 6}, $${baseIdx + 7}, $${baseIdx + 8}, $${baseIdx + 9}, $${baseIdx + 10}
+    )`);
+
+    values.push(
+        timestamp,
+        exchangeId,
+        baseSymbol,
+        quoteSymbol,
+        timeframe,
+        open,
+        high,
+        low,
+        close,
+        volume
+    );
+  });
+
+  const query = queryPrefix + valuePlaceholders.join(", ") + `
+    ON CONFLICT (timestamp, exchange, base_symbol, quote_symbol, timeframe) DO NOTHING
+  `;
 
   try {
     await pool.query(query, values);
@@ -119,6 +223,28 @@ const saveTrade = async (exchangeId, baseSymbol, quoteSymbol, data) => {
   } catch (error) {
     logger.error(
       formatMessage(messages.error.failInsertTrade, { error: values }),
+    );
+  }
+};
+
+const getLastSavedCandle = async (exchange, baseSymbol, timeframe) => {
+  const query = `SELECT timestamp, exchange, base_symbol, timeframe
+                          FROM candles
+                          WHERE exchange = $1 AND base_symbol = $2 AND timeframe = $3
+                          ORDER BY timestamp DESC
+                          LIMIT 1;
+                        `;
+  const values = [
+      exchange,
+      baseSymbol,
+      timeframe
+  ];
+  try {
+    const { rows } = await pool.query(query, values);
+    return rows.length ? rows[0] : null;
+  } catch (error) {
+    logger.error(
+        formatMessage(messages.error.failReadCoin, { error: error.message }),
     );
   }
 };
@@ -204,6 +330,8 @@ module.exports = {
   saveTicker,
   saveTrade,
   saveCandle,
+  saveCandles,
+  getLastSavedCandle,
   getAllCoins,
   saveCoins,
   updateCoins,

@@ -1,32 +1,52 @@
 {
   "apps": [
     {
-      "name": "upbit_ticker",
+      "name": "upbit_candle",
       "script": "./app/collectionWorker.js",
-      "args": "--exchange=upbit --type=ticker --symbolPath=./app/symbols/upbit-symbols.json --candle=1m",
+      "args": "--exchange=upbit --type=ticker --symbolPath=./app/symbols/upbit-candle-symbols.json --candle=1m",
       "exec_mode": "fork",
       "instances": 1,
       "autorestart": true,
       "watch": false,
       "max_restarts": 5,
       "restart_delay": 5000,
-      "log_date_format": "YYYY-MM-DD HH:mm:ss",
-      "error_file": "./logs/upbit_ticker_error.log",
-      "out_file": "./logs/upbit_ticker_out.log"
+      "log_date_format": "YYYY-MM-DD HH:mm:ss"
+    },
+    {
+      "name": "upbit_backfill",
+      "script": "./app/collectionWorker.js",
+      "args": "--exchange=upbit --type=backfill --symbolPath=./app/symbols/upbit-candle-symbols.json --candle=1m",
+      "exec_mode": "fork",
+      "instances": 1,
+      "autorestart": true,
+      "watch": false,
+      "max_restarts": 5,
+      "restart_delay": 5000,
+      "log_date_format": "YYYY-MM-DD HH:mm:ss"
+    },
+    {
+      "name": "upbit_ticker",
+      "script": "./app/collectionWorker.js",
+      "args": "--exchange=upbit --type=ticker --symbolPath=./app/symbols/upbit-ticker-symbols.json",
+      "exec_mode": "fork",
+      "instances": 1,
+      "autorestart": true,
+      "watch": false,
+      "max_restarts": 5,
+      "restart_delay": 5000,
+      "log_date_format": "YYYY-MM-DD HH:mm:ss"
     },
     {
       "name": "binance_ticker",
       "script": "./app/collectionWorker.js",
-      "args": "--exchange=binance --type=ticker --symbolPath=./app/symbols/binance-symbols.json",
+      "args": "--exchange=binance --type=ticker --symbolPath=./app/symbols/binance-ticker-symbols.json",
       "exec_mode": "fork",
       "instances": 1,
       "autorestart": true,
       "watch": false,
       "max_restarts": 5,
       "restart_delay": 5000,
-      "log_date_format": "YYYY-MM-DD HH:mm:ss",
-      "error_file": "./logs/binance_ticker_error.log",
-      "out_file": "./logs/binance_ticker_out.log"
+      "log_date_format": "YYYY-MM-DD HH:mm:ss"
     }
   ]
 }
