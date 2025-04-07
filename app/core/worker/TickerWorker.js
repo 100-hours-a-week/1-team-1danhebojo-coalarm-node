@@ -1,28 +1,12 @@
 const BaseWorker = require("./BaseWorker");
 
 class TickerWorker extends BaseWorker {
-  constructor(exchangeId, symbols, strategy, candle) {
-    super(exchangeId, symbols, strategy);
+  constructor(exchangeId, strategy, symbols, candle) {
+    super(exchangeId, strategy);
 
+    this.symbols = symbols;
     this.candle = candle;
     this.candleBuffer = {};
-  }
-
-  roundToTimeframe(timestamp, timeframe) {
-    const date = new Date(timestamp);
-    if (timeframe === '1m') return Math.floor(timestamp / 60_000) * 60_000;
-    if (timeframe === '1h') return new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours()).getTime();
-    if (timeframe === '1d') return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
-    return timestamp;
-  }
-
-  getIntervalMilliseconds() {
-    switch (this.candle) {
-      case '1m': return 60_000;
-      case '1h': return 3_600_000;
-      case '1d': return 86_400_000;
-      default: return 60_000;
-    }
   }
 
   async run() {
@@ -31,6 +15,7 @@ class TickerWorker extends BaseWorker {
     while (this.running) {
       const ticker = await this.strategy.watch(this.exchange, this.symbols);
 
+      // 실시간 티커 데이터 저장
       await this.strategy.saveTicker(this.exchange, ticker);
 
       if (!this.candle) {
@@ -61,7 +46,7 @@ class TickerWorker extends BaseWorker {
 
       // 이전 타임프레임 캔들을 저장
       const now = Date.now();
-      const prev = this.roundToTimeframe(now - this.getIntervalMilliseconds(), this.candle);
+      const prev = this.roundToTimeframe(now - this.getIntervalMilliseconds(this.candle), this.candle);
       if (this.candleBuffer[ticker.symbol][prev]) {
         const c = this.candleBuffer[ticker.symbol][prev];
 

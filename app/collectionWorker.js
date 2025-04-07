@@ -1,3 +1,4 @@
+require("dotenv").config(); // .env 파일 로드
 // collectionWorker.js : 데이터 수집 워커 진입점
 
 const WorkerFactory = require("./core/worker/WorkerFactory");
