@@ -14,7 +14,7 @@ class BaseWorker {
     this.running = false;
   }
   async run() {
-    throw new Error("오버라이딩 하세요.");
+    throw new Error("하위 클래스를 생성하고 run() 메서드를 오버라이딩");
   }
 
   stop() {

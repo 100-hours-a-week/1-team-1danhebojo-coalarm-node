@@ -15,15 +15,17 @@ const pool = new Pool({
 });
 
 pool.on("connect", () => {
-  logger.info(formatMessage(messages.db.connect));
+  logger.info(`데이터베이스 연결 성공`);
 });
 
 pool.on("error", () => {
-  logger.error(formatMessage(messages.error.failConnectDB));
+  logger.error(`데이터베이스 연결 실패`);
 });
 
-// DB에 Ticker 데이터 저장
-const saveTicker = async (exchangeId, baseSymbol, quoteSymbol, data) => {
+// DB에 티커 데이터 저장
+const saveTicker = async (exchangeId, baseSymbol, quoteSymbol, ticker) => {
+  if (!ticker) return;
+
   const query = `
     INSERT INTO tickers (
       timestamp, exchange, base_symbol, quote_symbol, open, high, low, close, last, previous_close,
@@ -35,33 +37,33 @@ const saveTicker = async (exchangeId, baseSymbol, quoteSymbol, data) => {
   `;
 
   const values = [
-    data.timestamp,
+    ticker.timestamp,
     exchangeId,
     baseSymbol,
     quoteSymbol,
-    data.open,
-    data.high,
-    data.low,
-    data.close,
-    data.last,
-    data.previousClose,
-    data.change,
-    data.percentage,
-    data.baseVolume,
-    data.quoteVolume,
+    ticker.open,
+    ticker.high,
+    ticker.low,
+    ticker.close,
+    ticker.last,
+    ticker.previousClose,
+    ticker.change,
+    ticker.percentage,
+    ticker.baseVolume,
+    ticker.quoteVolume,
   ];
 
   try {
     await pool.query(query, values);
-  } catch (error) {
-    logger.error(
-      formatMessage(messages.error.failInsertTicker, { error: error.message }),
-    );
+  } catch (e) {
+    logger.error(`${exchangeId} 거래소 ${baseSymbol}/${quoteSymbol} 심볼의 티커 데이터 저장 실패: `, e);
   }
 };
 
-// DB에 Candle 데이터 저장
-const saveCandle = async (exchangeId, baseSymbol, quoteSymbol, candle) => {
+// DB에 캔들 데이터 저장
+const saveCandle = async (exchangeId, baseSymbol, quoteSymbol, timeframe, candle) => {
+  if (!candle) return;
+
   const query = `
     INSERT INTO candles (
       timestamp, exchange, base_symbol, quote_symbol, timeframe, open, high, low, close, volume
@@ -75,7 +77,7 @@ const saveCandle = async (exchangeId, baseSymbol, quoteSymbol, candle) => {
     exchangeId,
     baseSymbol,
     quoteSymbol,
-    candle.timeframe,
+    timeframe,
     candle.open,
     candle.high,
     candle.low,
@@ -85,67 +87,12 @@ const saveCandle = async (exchangeId, baseSymbol, quoteSymbol, candle) => {
 
   try {
     await pool.query(query, values);
-  } catch (error) {
-    logger.error(
-        formatMessage(messages.error.failInsertCandle, { error: error.message }),
-    );
+  } catch (e) {
+    logger.error(`${exchangeId} 거래소 ${baseSymbol}/${quoteSymbol} 심볼의 캔들 데이터 저장 실패: `, e);
   }
 };
 
-// const saveCandles = async (exchangeId, baseSymbol, quoteSymbol, timeframe, candles) => {
-//   if (!candles || candles.length === 0) return;
-//
-//   const size = 10;
-//   for (let i = 0; i < candles.length; i += size) {
-//     const chunk = candles.slice(i, i + size);
-//     const queryPrefix = `
-//       INSERT INTO candles (
-//         timestamp, exchange, base_symbol, quote_symbol, timeframe,
-//         open, high, low, close, volume
-//       ) VALUES
-//     `;
-//
-//     const valuePlaceholders = [];
-//     const values = [];
-//
-//     chunk.forEach((candle, index) => {
-//       const [timestamp, open, high, low, close, volume] = candle;
-//       const baseIdx = index * 10;
-//
-//       valuePlaceholders.push(`(
-//         to_timestamp($${baseIdx + 1} / 1000.0), $${baseIdx + 2}, $${baseIdx + 3}, $${baseIdx + 4}, $${baseIdx + 5},
-//         $${baseIdx + 6}, $${baseIdx + 7}, $${baseIdx + 8}, $${baseIdx + 9}, $${baseIdx + 10}
-//       )`);
-//
-//       values.push(
-//           timestamp,
-//           exchangeId,
-//           baseSymbol,
-//           quoteSymbol,
-//           timeframe,
-//           open,
-//           high,
-//           low,
-//           close,
-//           volume
-//       );
-//     });
-//
-//     const query = queryPrefix + valuePlaceholders.join(", ") + `
-//       ON CONFLICT (timestamp, exchange, base_symbol, quote_symbol, timeframe) DO NOTHING
-//     `;
-//
-//     try {
-//       await pool.query(query, values);
-//     } catch (error) {
-//       logger.error(
-//           formatMessage(messages.error.failInsertCandle, { error: error.message }),
-//       );
-//       console.error(error.stack);
-//     }
-//   }
-// };
-
+// DB 캔들 데이터 배치 저장
 const saveCandles = async (exchangeId, baseSymbol, quoteSymbol, timeframe, candles) => {
   if (!candles || candles.length === 0) return;
 
@@ -156,7 +103,6 @@ const saveCandles = async (exchangeId, baseSymbol, quoteSymbol, timeframe, candl
     ) VALUES 
   `;
 
-  // ($1, $2, ..., $10), ($11, $12, ..., $20), ...
   const valuePlaceholders = [];
   const values = [];
 
@@ -189,15 +135,15 @@ const saveCandles = async (exchangeId, baseSymbol, quoteSymbol, timeframe, candl
 
   try {
     await pool.query(query, values);
-  } catch (error) {
-    logger.error(
-        formatMessage(messages.error.failInsertCandle, { error: error.message }),
-    );
+  } catch (e) {
+    logger.error(`${exchangeId} 거래소 ${baseSymbol}/${quoteSymbol} 심볼의 캔들 데이터 배치 저장 실패: `, e);
   }
 };
 
-// DB에 Trade 데이터 저장
-const saveTrade = async (exchangeId, baseSymbol, quoteSymbol, data) => {
+// DB에 체결 내역 데이터 저장
+const saveTrade = async (exchangeId, baseSymbol, quoteSymbol, trade) => {
+  if (!trade) return;
+
   const query = `
     INSERT INTO trades (
       timestamp, exchange, base_symbol, quote_symbol, trade_id, price, amount, cost, side
@@ -207,23 +153,21 @@ const saveTrade = async (exchangeId, baseSymbol, quoteSymbol, data) => {
   `;
 
   const values = [
-    data.timestamp,
+    trade.timestamp,
     exchangeId,
     baseSymbol,
     quoteSymbol,
-    data.id,
-    data.price,
-    data.amount,
-    data.cost,
-    data.side,
+    trade.id,
+    trade.price,
+    trade.amount,
+    trade.cost,
+    trade.side,
   ];
 
   try {
     await pool.query(query, values);
-  } catch (error) {
-    logger.error(
-      formatMessage(messages.error.failInsertTrade, { error: values }),
-    );
+  } catch (e) {
+    logger.error(`${exchangeId} 거래소 ${baseSymbol}/${quoteSymbol} 심볼의 체결 내역 데이터 저장 실패: `, e);
   }
 };
 
@@ -242,10 +186,8 @@ const getLatestSavedCandle = async (exchange, baseSymbol, timeframe) => {
   try {
     const { rows } = await pool.query(query, values);
     return rows.length ? rows[0] : null;
-  } catch (error) {
-    logger.error(
-        formatMessage(messages.error.failReadCoin, { error: error.message }),
-    );
+  } catch (e) {
+    logger.error(`${exchange} 거래소 ${baseSymbol} 심볼의 가장 최근 ${timeframe} 캔들 데이터 조회 실패: `, e);
   }
 };
 
@@ -264,10 +206,8 @@ const getOldestSavedCandle = async (exchange, baseSymbol, timeframe) => {
   try {
     const { rows } = await pool.query(query, values);
     return rows.length ? rows[0] : null;
-  } catch (error) {
-    logger.error(
-        formatMessage(messages.error.failReadCoin, { error: error.message }),
-    );
+  } catch (e) {
+    logger.error(`${exchange} 거래소 ${baseSymbol} 심볼의 가장 오래된 ${timeframe} 캔들 데이터 조회 실패: `, e);
   }
 };
 
@@ -277,15 +217,13 @@ const getAllCoins = async () => {
   try {
     const { rows } = await pool.query(query);
     return rows;
-  } catch (error) {
-    logger.error(
-      formatMessage(messages.error.failReadCoin, { error: error.message }),
-    );
+  } catch (e) {
+    logger.error(`코인 목록 조회 실패: `, e);
   }
 };
 
 const saveCoins = async (coins) => {
-  if (!coins.length) return;
+  if (!coins || coins.length === 0) return;
 
   const values = coins
     .map((coin) => `('${coin.name}', '${coin.symbol}')`)
@@ -300,30 +238,26 @@ const saveCoins = async (coins) => {
 
   try {
     await pool.query(query);
-  } catch (error) {
-    logger.error(
-      formatMessage(messages.error.failInsertCoin, { error: error.message }),
-    );
+  } catch (e) {
+    logger.error(`코인 데이터 배치 저장 실패: `, e);
   }
 };
 
 const deleteCoins = async (coins) => {
-  if (!coins.length) return;
+  if (!coins || coins.length === 0) return;
 
   const symbols = coins.map((coin) => `'${coin.symbol}'`).join(", ");
   const query = `DELETE FROM coins WHERE symbol IN (${symbols});`;
 
   try {
     await pool.query(query);
-  } catch (error) {
-    logger.error(
-      formatMessage(messages.error.failDeleteCoin, { error: error.message }),
-    );
+  } catch (e) {
+    logger.error(`코인 데이터 배치 삭제 실패: `, e);
   }
 };
 
 const updateCoins = async (coins) => {
-  if (!coins.length) return;
+  if (!coins || coins.length === 0) return;
 
   const updates = coins
     .map((coin) => `WHEN '${coin.symbol}' THEN '${coin.name}'`)
@@ -340,10 +274,8 @@ const updateCoins = async (coins) => {
 
   try {
     await pool.query(query);
-  } catch (error) {
-    logger.error(
-      formatMessage(messages.error.failUpdateCoin, { error: error.message }),
-    );
+  } catch (e) {
+    logger.error(`코인 데이터 배치 수정 실패: `, e);
   }
 };
 

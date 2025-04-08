@@ -1,25 +1,20 @@
-const winston = require("winston");
+const { format, createLogger, transports} = require("winston");
 
-const consoleFormat = winston.format.combine(
-  winston.format.colorize(),
-  winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
-  winston.format.printf(({ timestamp, level, message }) => {
-    return `${timestamp} [${level.toUpperCase()}]: ${message}`;
+const logFormat = format.combine(
+  format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
+  format.printf(({ timestamp, level, message }) => {
+    const procName = process.env.name || `pid-${process.pid}`;
+    const msg = typeof message === 'object' ? JSON.stringify(message) : message;
+    return `[${timestamp}] [${procName}] [${level.toUpperCase()}] ${msg}`;
   }),
 );
 
-const fileFormat = winston.format.combine(
-  winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
-  winston.format.printf(({ timestamp, level, message }) => {
-    return `${timestamp} [${level.toUpperCase()}]: ${message}`;
-  }),
-);
-
-const logger = winston.createLogger({
+const logger = createLogger({
   level: "info",
   transports: [
-    new winston.transports.Console({ format: consoleFormat }),
-    new winston.transports.File({ filename: "app.log", format: fileFormat }),
+    new transports.Console({ format: logFormat }),
+    new transports.File({ filename: "combine.log", format: logFormat }),
+    new transports.File({ filename: "error.log", level: "error", format: logFormat }),
   ],
 });
 

@@ -4,10 +4,8 @@ class TickerStrategy {
   async watch(exchange, symbols) {
     try {
       return Object.values(await exchange.watchTickers(symbols))[0];
-    } catch (err) {
-      logger.error(
-        `거래소: ${exchange.name}의 티커 데이터를 받아오는 데에 실패했습니다.`,
-      );
+    } catch (e) {
+      logger.error(`${exchange.name} 거래소의 티커 데이터를 받아오는 데에 실패했습니다.`, e);
     }
   }
 
@@ -16,9 +14,9 @@ class TickerStrategy {
     await saveTicker(exchange.id, baseSymbol, quoteSymbol, ticker);
   }
 
-  async saveCandle(exchange, candle) {
+  async saveCandle(exchange, timeframe, candle) {
     const [baseSymbol, quoteSymbol] = candle.symbol.split("/");
-    await saveCandle(exchange.id, baseSymbol, quoteSymbol, candle);
+    await saveCandle(exchange.id, baseSymbol, quoteSymbol, timeframe, candle);
   }
 }
 

@@ -22,13 +22,14 @@ class TickerWorker extends BaseWorker {
         continue;
       }
 
-      // 1. 현재 시간을 주어진 candle 단위로 라운딩
-      const rounded = this.roundToTimeframe(ticker.timestamp, this.candle); // ex: 09:01:27 → 09:01:00
+      // 현재 시간을 주어진 candle 단위로 라운딩
+      // ex: 09:01:27 → 09:01:00
+      const rounded = this.roundToTimeframe(ticker.timestamp, this.candle);
 
-      // 2. 현재 심볼에 해당하는 버퍼가 없으면 생성
+      // 현재 심볼에 해당하는 버퍼가 없으면 생성
       this.candleBuffer[ticker.symbol] ??= {};
 
-      // 3. 현재 타임프레임(rounded 시간)에 해당하는 캔들 버퍼 초기화
+      // 현재 타임프레임(rounded 시간)에 해당하는 캔들 버퍼 초기화
       this.candleBuffer[ticker.symbol][rounded] ??= {
         timestamp: rounded,
         open: ticker.last,
@@ -38,30 +39,29 @@ class TickerWorker extends BaseWorker {
         volume: ticker.baseVolume ?? 0,
       };
 
-      const candle = this.candleBuffer[ticker.symbol][rounded];
-      candle.high = Math.max(candle.high, ticker.last);
-      candle.low = Math.min(candle.low, ticker.last);
-      candle.close = ticker.last;
-      candle.volume += ticker.baseVolume ?? 0;
+      const curCandle = this.candleBuffer[ticker.symbol][rounded];
+      curCandle.high = Math.max(curCandle.high, ticker.last);
+      curCandle.low = Math.min(curCandle.low, ticker.last);
+      curCandle.close = ticker.last;
+      curCandle.volume += ticker.baseVolume ?? 0;
 
       // 이전 타임프레임 캔들을 저장
       const now = Date.now();
       const prev = this.roundToTimeframe(now - this.getIntervalMilliseconds(this.candle), this.candle);
       if (this.candleBuffer[ticker.symbol][prev]) {
-        const c = this.candleBuffer[ticker.symbol][prev];
+        const prevCandle = this.candleBuffer[ticker.symbol][prev];
 
-        const data = {
+        const candle = {
           symbol: ticker.symbol,
-          timestamp: c.timestamp,
-          timeframe: this.candle,
-          open: c.open,
-          high: c.high,
-          low: c.low,
-          close: c.close,
-          volume: c.volume
+          timestamp: prevCandle.timestamp,
+          open: prevCandle.open,
+          high: prevCandle.high,
+          low: prevCandle.low,
+          close: prevCandle.close,
+          volume: prevCandle.volume
         }
 
-        await this.strategy.saveCandle(this.exchange, data);
+        await this.strategy.saveCandle(this.exchange, this.candle, candle);
         delete this.candleBuffer[ticker.symbol][prev];
       }
 

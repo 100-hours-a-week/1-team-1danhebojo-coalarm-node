@@ -17,7 +17,7 @@ class BackFillStrategy {
       const since = end - interval * maxLimit;
 
       if (since < start) {
-        logger.info(`[백필 워커] ${symbol}: 캔들 데이터 수집 완료`);
+        logger.info(`${exchange.name} 거래소 ${symbol} 심볼의 ${timeframe} 캔들 데이터 수집 완료`);
         break;
       }
 
@@ -26,10 +26,10 @@ class BackFillStrategy {
 
       if (!candles.length) {
         emptyCount++;
-        logger.info(`[백필 워커] ${symbol}: 빈 응답(${emptyCount}/${maxEmptyCount})`);
+        logger.info(`${exchange.name} 거래소 ${symbol} 심볼의 빈 응답(${emptyCount}/${maxEmptyCount})`);
 
         if (emptyCount >= maxEmptyCount) {
-          logger.info(`[백필 워커] ${symbol}: 연속된 빈 응답으로 인한 실행 종료`);
+          logger.info(`${exchange.name} 거래소 ${symbol} 심볼의 연속된 빈 응답으로 인한 실행 종료`);
           break;
         }
 
