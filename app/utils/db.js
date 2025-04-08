@@ -227,11 +227,33 @@ const saveTrade = async (exchangeId, baseSymbol, quoteSymbol, data) => {
   }
 };
 
-const getLastSavedCandle = async (exchange, baseSymbol, timeframe) => {
+const getLatestSavedCandle = async (exchange, baseSymbol, timeframe) => {
   const query = `SELECT timestamp, exchange, base_symbol, timeframe
                           FROM candles
                           WHERE exchange = $1 AND base_symbol = $2 AND timeframe = $3
                           ORDER BY timestamp DESC
+                          LIMIT 1;
+                        `;
+  const values = [
+      exchange,
+      baseSymbol,
+      timeframe
+  ];
+  try {
+    const { rows } = await pool.query(query, values);
+    return rows.length ? rows[0] : null;
+  } catch (error) {
+    logger.error(
+        formatMessage(messages.error.failReadCoin, { error: error.message }),
+    );
+  }
+};
+
+const getOldestSavedCandle = async (exchange, baseSymbol, timeframe) => {
+  const query = `SELECT timestamp, exchange, base_symbol, timeframe
+                          FROM candles
+                          WHERE exchange = $1 AND base_symbol = $2 AND timeframe = $3
+                          ORDER BY timestamp
                           LIMIT 1;
                         `;
   const values = [
@@ -331,7 +353,8 @@ module.exports = {
   saveTrade,
   saveCandle,
   saveCandles,
-  getLastSavedCandle,
+  getLatestSavedCandle,
+  getOldestSavedCandle,
   getAllCoins,
   saveCoins,
   updateCoins,
