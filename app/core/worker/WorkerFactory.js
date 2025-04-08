@@ -4,6 +4,10 @@ const TickerStrategy = require("../strategy/TickerStrategy");
 const BackFillWorker = require("./BackFillWorker");
 const BackFillStrategy = require("../strategy/BackFillStrategy");
 
+// Mock
+const MockTickerStrategy = require("../../mock/MockTickerStrategy");
+const MockBackFillStrategy = require("../../mock/MockBackFillStrategy");
+
 class WorkerFactory {
   static create(exchangeId, type, symbols, candle) {
     switch (type) {
