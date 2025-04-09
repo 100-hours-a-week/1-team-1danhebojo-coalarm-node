@@ -1,70 +1,52 @@
 {
   "apps": [
     {
-      "name": "load_symbol",
-      "script": "./app/worker/loadSymbolWorker.js",
+      "name": "upbit_candle",
+      "script": "./app/collectionWorker.js",
+      "args": "--exchange=upbit --type=ticker --symbolPath=./app/symbols/upbit-candle-symbols.json --candle=1m",
       "exec_mode": "fork",
       "instances": 1,
       "autorestart": true,
       "watch": false,
       "max_restarts": 5,
       "restart_delay": 5000,
-      "log_date_format": "YYYY-MM-DD HH:mm:ss",
-      "error_file": "./logs/load_symbol_error.log",
-      "out_file": "./logs/load_symbol_out.log"
-    },
-
-    {
-      "name": "binance_ticker",
-      "script": "./app/worker/binanceTickerWorker.js",
-      "exec_mode": "fork",
-      "instances": 1,
-      "autorestart": true,
-      "watch": false,
-      "max_restarts": 5,
-      "restart_delay": 5000,
-      "log_date_format": "YYYY-MM-DD HH:mm:ss",
-      "error_file": "./logs/binance_ticker_error.log",
-      "out_file": "./logs/binance_ticker_out.log"
+      "log_date_format": "YYYY-MM-DD HH:mm:ss"
     },
     {
-      "name": "binance_trade",
-      "script": "./app/worker/binanceTradeWorker.js",
+      "name": "upbit_backfill",
+      "script": "./app/collectionWorker.js",
+      "args": "--exchange=upbit --type=backfill --symbolPath=./app/symbols/upbit-candle-symbols.json --candle=1m",
       "exec_mode": "fork",
       "instances": 1,
       "autorestart": true,
       "watch": false,
       "max_restarts": 5,
       "restart_delay": 5000,
-      "log_date_format": "YYYY-MM-DD HH:mm:ss",
-      "error_file": "./logs/binance_trade_error.log",
-      "out_file": "./logs/binance_trade_out.log"
+      "log_date_format": "YYYY-MM-DD HH:mm:ss"
     },
     {
       "name": "upbit_ticker",
-      "script": "./app/worker/upbitTickerWorker.js",
+      "script": "./app/collectionWorker.js",
+      "args": "--exchange=upbit --type=ticker --symbolPath=./app/symbols/upbit-ticker-symbols.json",
       "exec_mode": "fork",
       "instances": 1,
       "autorestart": true,
       "watch": false,
       "max_restarts": 5,
       "restart_delay": 5000,
-      "log_date_format": "YYYY-MM-DD HH:mm:ss",
-      "error_file": "./logs/upbit_ticker_error.log",
-      "out_file": "./logs/upbit_ticker_out.log"
+      "log_date_format": "YYYY-MM-DD HH:mm:ss"
     },
     {
-      "name": "upbit_trade",
-      "script": "./app/worker/upbitTradeWorker.js",
+      "name": "binance_ticker",
+      "script": "./app/collectionWorker.js",
+      "args": "--exchange=binance --type=ticker --symbolPath=./app/symbols/binance-ticker-symbols.json",
       "exec_mode": "fork",
       "instances": 1,
       "autorestart": true,
       "watch": false,
       "max_restarts": 5,
       "restart_delay": 5000,
-      "log_date_format": "YYYY-MM-DD HH:mm:ss",
-      "error_file": "./logs/upbit_trade_error.log",
-      "out_file": "./logs/upbit_trade_out.log"
+      "log_date_format": "YYYY-MM-DD HH:mm:ss"
     }
   ]
 }

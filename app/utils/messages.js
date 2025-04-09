@@ -16,6 +16,8 @@ const messages = {
     failDeleteCoin: "코인 데이터를 삭제하는 데에 실패했습니다: {error}",
     failUpdateCoin: "코인 데이터를 수정하는 데에 실패했습니다: {error}",
     failInsertTicker: "티커 데이터를 저장하는 데에 실패했습니다: {error}",
+    failInsertCandle: "캔들 데이터를 저장하는 데에 실패했습니다: {error}",
+    failReadCandle: "캔들 데이터를 조회하는 데에 실패했습니다: {error}",
     failInsertTrade: "체결 내역 데이터를 저장하는 데에 실패했습니다: {error}",
     failWatchTickerUpbit:
       "[업비트] 티커 데이터를 받아오는 데에 실패했습니다: {error}",

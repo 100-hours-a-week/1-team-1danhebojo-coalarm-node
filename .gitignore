@@ -44,4 +44,4 @@ out/
 *.log
 
 ### shared ###
-/app/shared/
+/app/symbols/
