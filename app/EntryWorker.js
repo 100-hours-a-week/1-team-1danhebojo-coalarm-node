@@ -1,5 +1,4 @@
 require("dotenv").config(); // .env 파일 로드
-// collectionWorker.js : 데이터 수집 워커 진입점
 
 const WorkerFactory = require("./core/worker/WorkerFactory");
 const { parseCliArgs } = require("./utils/args");
@@ -22,11 +21,11 @@ const setupGracefulShutdown = (worker) => {
 (async () => {
   try {
     // 실행 옵션 입력받기
-    const { exchange, type, symbols, candle } = parseCliArgs();
+    const { exchange, type, candle } = parseCliArgs();
 
     // 워커 생성
-    const worker = WorkerFactory.create(exchange, type, symbols, candle);
-    logger.info(`${exchange} 거래소 ${type} 유형의 워커 생성 (심볼 개수: ${symbols.length}, 캔들 단위: ${candle ?? '지정 안함'})`);
+    const worker = WorkerFactory.create(exchange, type, candle);
+    logger.info(`${type} 유형의 워커 생성 (캔들 단위: ${candle ?? '지정 안함'}, 거래소: ${exchange ?? '지정 안함'})`);
 
     setupGracefulShutdown(worker);
 
