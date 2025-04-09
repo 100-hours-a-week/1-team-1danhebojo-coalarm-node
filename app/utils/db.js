@@ -279,6 +279,25 @@ const updateCoins = async (coins) => {
   }
 };
 
+const saveSymbols = async (symbols) => {
+  if (!symbols || symbols.length === 0) return;
+
+  const query = `
+          INSERT INTO symbols (exchange, base_symbol, quote_symbol, use_candle)
+          VALUES ${symbols.map((_, i) => `($${i * 4 + 1}, $${i * 4 + 2}, $${i * 4 + 3}, $${i * 4 + 4})`).join(', ')}
+          ON CONFLICT (exchange, base_symbol, quote_symbol) DO NOTHING
+        `;
+  const values = symbols.flat();
+
+  try {
+    await pool.query(query, values);
+  } catch (e) {
+    logger.error(`심볼 데이터 배치 저장 실패: `, e);
+  }
+};
+
+
+
 module.exports = {
   pool,
   saveTicker,
@@ -291,4 +310,5 @@ module.exports = {
   saveCoins,
   updateCoins,
   deleteCoins,
+  saveSymbols
 };
