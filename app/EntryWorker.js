@@ -21,7 +21,15 @@ const setupGracefulShutdown = (worker) => {
 (async () => {
   try {
     // 실행 옵션 입력받기
-    const { exchange, type, timeframe, debug, symbol } = parseCliArgs();
+    const {
+      exchange,
+      type,
+      timeframe,
+      debug,
+      symbol,
+      offset,
+      limit
+    } = parseCliArgs();
 
     // 워커 생성
     const worker = WorkerFactory.create({
@@ -29,7 +37,9 @@ const setupGracefulShutdown = (worker) => {
       type: type,
       timeframe: timeframe,
       debug: debug,
-      symbol: symbol
+      symbol: symbol,
+      offset: offset,
+      limit: limit
     });
 
     logger.info(`${type} 유형의 워커 생성 (캔들 단위: ${timeframe ?? '지정 안함'}, 거래소: ${exchange ?? '지정 안함'})`);
@@ -39,6 +49,7 @@ const setupGracefulShutdown = (worker) => {
     await worker.run();
   } catch (e) {
     logger.error(`프로세스 비정상 종료: `, e);
+    console.error(e.stack);
     process.exit(1);
   }
 })();

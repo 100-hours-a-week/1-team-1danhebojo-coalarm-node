@@ -17,17 +17,21 @@ const MockCandleStrategy = require("../../mock/MockCandleStrategy");
 
 class WorkerFactory {
   static create({
-                  exchangeId,
-                  type,
-                  timeframe,
-                  debug=false,
-                  symbol
+      exchangeId,
+      type,
+      timeframe,
+      debug = false,
+      symbol,
+      offset,
+      limit,
   }) {
     switch (type) {
       case "ticker":
         return new TickerWorker({
               exchangeId: exchangeId,
               strategy: debug ? new MockTickerStrategy() : new TickerStrategy(),
+              offset: offset,
+              limit: limit
         });
       case "backfill":
         return new BackFillWorker({
@@ -40,7 +44,9 @@ class WorkerFactory {
         return new CandleWorker({
             exchangeId: exchangeId,
             strategy: debug ? new MockCandleStrategy() : new CandleStrategy(),
-            timeframe: timeframe
+            timeframe: timeframe,
+            offset: offset,
+            limit: limit
         })
       case "load_market":
         return new LoadMarketWorker(new LoadMarketStrategy());

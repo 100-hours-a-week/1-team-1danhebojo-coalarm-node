@@ -2,8 +2,10 @@ const BaseWorker = require("./BaseWorker");
 const {logger} = require("../../utils/logger");
 
 class TickerWorker extends BaseWorker {
-  constructor({exchangeId, strategy}) {
+  constructor({exchangeId, strategy, offset, limit}) {
     super(exchangeId, strategy);
+    this.offset = offset;
+    this.limit = limit;
   }
 
   async run() {

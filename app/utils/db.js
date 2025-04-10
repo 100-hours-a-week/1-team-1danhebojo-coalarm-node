@@ -296,17 +296,20 @@ const saveSymbols = async (symbols) => {
   }
 };
 
-const getSymbolsForTicker = async (exchangeId) => {
-  if (!exchangeId) return;
+const getSymbolsForTicker = async (exchangeId, offset, limit) => {
+  if (!exchangeId || !offset || !limit) return;
 
   const query = `
     SELECT base_symbol || '/' || quote_symbol AS symbol
     FROM symbols
     WHERE exchange = $1 AND use_candle = FALSE;
+    OFFSET $2 LIMIT $3;
   `;
 
   const value = [
-      exchangeId
+      exchangeId,
+      offset,
+      limit
   ]
 
   try {
@@ -318,17 +321,20 @@ const getSymbolsForTicker = async (exchangeId) => {
   }
 }
 
-const getSymbolsForCandle = async (exchangeId) => {
-  if (!exchangeId) return;
+const getSymbolsForCandle = async (exchangeId, offset, limit) => {
+  if (!exchangeId || !offset || !limit) return;
 
   const query = `
     SELECT base_symbol || '/' || quote_symbol AS symbol
     FROM symbols
     WHERE exchange = $1 AND use_candle = TRUE;
+    OFFSET $2 LIMIT $3;
   `;
 
   const value = [
-    exchangeId
+    exchangeId,
+    offset,
+    limit
   ]
 
   try {

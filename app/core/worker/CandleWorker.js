@@ -2,12 +2,14 @@ const BaseWorker = require("./BaseWorker");
 const {logger} = require("../../utils/logger");
 
 class CandleWorker extends BaseWorker {
-  constructor(exchangeId, strategy, timeframe) {
+  constructor({exchangeId, strategy, timeframe, offset, limit}) {
     super(exchangeId, strategy);
 
     this.timeframe = timeframe;
     this.interval = this.getIntervalMilliseconds(this.timeframe);
     this.candleBuffer = {};
+    this.offset = offset;
+    this.limit = limit;
   }
 
   async run() {
