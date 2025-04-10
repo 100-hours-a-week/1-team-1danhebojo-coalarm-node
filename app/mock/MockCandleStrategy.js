@@ -1,8 +1,7 @@
 const { logger } = require("../utils/logger");
-class MockTickerStrategy {
-
+class MockCandleStrategy {
   async getSymbols(exchange) {
-    logger.info('[MockTickerStrategy] 티커 심볼을 로드했습니다.');
+    logger.info('[MockCandleStrategy] 캔들 심볼을 로드했습니다.');
   }
 
   async watch(exchange, symbols) {
@@ -14,8 +13,8 @@ class MockTickerStrategy {
   }
 
   async save(exchange, ticker) {
-    logger.info('[MockTickerStrategy] 티커 데이터를 저장했습니다.');
+    logger.info('[MockCandleStrategy] 캔들 데이터를 저장했습니다.');
   }
 }
 
-module.exports = MockTickerStrategy;
+module.exports = MockCandleStrategy;

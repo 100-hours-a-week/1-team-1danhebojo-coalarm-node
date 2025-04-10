@@ -296,6 +296,49 @@ const saveSymbols = async (symbols) => {
   }
 };
 
+const getSymbolsForTicker = async (exchangeId) => {
+  if (!exchangeId) return;
+
+  const query = `
+    SELECT base_symbol || '/' || quote_symbol AS symbol
+    FROM symbols
+    WHERE exchange = $1 AND use_candle = FALSE;
+  `;
+
+  const value = [
+      exchangeId
+  ]
+
+  try {
+    const { rows } = await pool.query(query, value);
+    return rows.map(row => row.symbol);
+  } catch (e) {
+    logger.error(`티커 심볼 목록 조회 실패: `, e);
+
+  }
+}
+
+const getSymbolsForCandle = async (exchangeId) => {
+  if (!exchangeId) return;
+
+  const query = `
+    SELECT base_symbol || '/' || quote_symbol AS symbol
+    FROM symbols
+    WHERE exchange = $1 AND use_candle = TRUE;
+  `;
+
+  const value = [
+    exchangeId
+  ]
+
+  try {
+    const { rows } = await pool.query(query, value);
+    return rows.map(row => row.symbol);
+  } catch (e) {
+    logger.error(`캔들 심볼 목록 조회 실패: `, e);
+
+  }
+}
 
 
 module.exports = {
@@ -310,5 +353,7 @@ module.exports = {
   saveCoins,
   updateCoins,
   deleteCoins,
-  saveSymbols
+  saveSymbols,
+  getSymbolsForTicker,
+  getSymbolsForCandle
 };

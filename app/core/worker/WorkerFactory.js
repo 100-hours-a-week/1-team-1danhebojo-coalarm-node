@@ -1,16 +1,19 @@
 // Worker
 const TickerWorker = require("./TickerWorker");
 const BackFillWorker = require("./BackFillWorker");
+const CandleWorker = require("./CandleWorker");
 const LoadMarketWorker = require("./LoadMarketWorker");
 
 // Strategy
 const TickerStrategy = require("../strategy/TickerStrategy");
 const BackFillStrategy = require("../strategy/BackFillStrategy");
+const CandleStrategy = require("../strategy/CandleStrategy");
 const LoadMarketStrategy = require("../strategy/LoadMarketStrategy");
 
 // Mock
 const MockTickerStrategy = require("../../mock/MockTickerStrategy");
 const MockBackFillStrategy = require("../../mock/MockBackFillStrategy");
+const MockCandleStrategy = require("../../mock/MockCandleStrategy");
 
 class WorkerFactory {
   static create({
@@ -33,6 +36,12 @@ class WorkerFactory {
             timeframe: timeframe,
             symbol: symbol
         });
+      case "candle":
+        return new CandleWorker({
+            exchangeId: exchangeId,
+            strategy: debug ? new MockCandleStrategy() : new CandleStrategy(),
+            timeframe: timeframe
+        })
       case "load_market":
         return new LoadMarketWorker(new LoadMarketStrategy());
       default:
