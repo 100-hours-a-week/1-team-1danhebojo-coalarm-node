@@ -13,7 +13,7 @@ const parseCliArgs = () => {
   const type = args.type.toLowerCase();
   const exchange = args.exchange?.toLowerCase();
   const debug = args.debug?.toLowerCase();
-  const symbol = args.symbol?.toLowerCase();
+  const symbol = args.symbol;
 
   const offset = args.offset;
   const limit = args.limit;

@@ -14,7 +14,7 @@ class TickerWorker extends BaseWorker {
     const maxEmptyCount = 10; // 연속으로 빈 응답 허용 횟수
     let emptyCount = 0;
 
-    const symbols = await this.strategy.getSymbols(this.exchange);
+    const symbols = await this.strategy.getSymbols(this.exchange, this.offset, this.limit);
 
     while (this.running) {
       const ticker = await this.strategy.watch(this.exchange, symbols);

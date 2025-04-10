@@ -2,8 +2,8 @@ const { logger } = require("../../utils/logger");
 const { saveCandle, getSymbolsForCandle} = require("../../utils/db");
 class CandleStrategy {
 
-  async getSymbols(exchange) {
-    return await getSymbolsForCandle(exchange.id);
+  async getSymbols(exchange, offset, limit) {
+    return await getSymbolsForCandle(exchange.id, offset, limit);
   }
 
   async watch(exchange, symbols) {

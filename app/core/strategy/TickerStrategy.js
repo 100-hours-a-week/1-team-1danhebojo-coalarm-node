@@ -1,13 +1,14 @@
 const { logger } = require("../../utils/logger");
 const { saveTicker, getSymbolsForTicker} = require("../../utils/db");
 class TickerStrategy {
-  async getSymbols(exchange) {
-    return await getSymbolsForTicker(exchange.id);
+  async getSymbols(exchange, offset, limit) {
+    return await getSymbolsForTicker(exchange.id, offset, limit);
   }
 
   async watch(exchange, symbols) {
     try {
-      return Object.values(await exchange.watchTickers(symbols))[0];
+      const tickers = Object.values(await exchange.watchTickers(symbols))
+      return tickers[0];
     } catch (e) {
       logger.error(`${exchange.name} 거래소의 티커 데이터를 받아오는 데에 실패했습니다.`, e);
     }

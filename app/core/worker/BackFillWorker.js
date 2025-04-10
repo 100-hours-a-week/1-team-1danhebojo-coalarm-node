@@ -24,7 +24,7 @@ class BackFillWorker extends BaseWorker {
     let emptyCount = 0;
 
     // 기준 시점 설정
-    let end = oldestCandle.timestamp ??  Date.now();
+    let end = oldestCandle?.timestamp ??  Date.now();
     const start = Date.UTC(2017, 1, 1);
 
     while (true) {

@@ -2,17 +2,19 @@ require("dotenv").config(); // .env 파일 로드
 
 const { Pool } = require("pg");
 const { logger } = require("./logger");
-const { formatMessage } = require("./logger");
-const { messages } = require("./messages");
 
-// PostgreSQL Connection
-const pool = new Pool({
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT,
-  database: process.env.DB_NAME,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-});
+// PostgreSQL Connection Pool;
+let pool;
+
+if (!pool) {
+  pool = new Pool({
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    database: process.env.DB_NAME,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+  });
+}
 
 pool.on("connect", () => {
   logger.info(`데이터베이스 연결 성공`);
@@ -297,12 +299,11 @@ const saveSymbols = async (symbols) => {
 };
 
 const getSymbolsForTicker = async (exchangeId, offset, limit) => {
-  if (!exchangeId || !offset || !limit) return;
 
   const query = `
     SELECT base_symbol || '/' || quote_symbol AS symbol
     FROM symbols
-    WHERE exchange = $1 AND use_candle = FALSE;
+    WHERE exchange = $1
     OFFSET $2 LIMIT $3;
   `;
 
@@ -322,12 +323,11 @@ const getSymbolsForTicker = async (exchangeId, offset, limit) => {
 }
 
 const getSymbolsForCandle = async (exchangeId, offset, limit) => {
-  if (!exchangeId || !offset || !limit) return;
 
   const query = `
     SELECT base_symbol || '/' || quote_symbol AS symbol
     FROM symbols
-    WHERE exchange = $1 AND use_candle = TRUE;
+    WHERE exchange = $1 AND use_candle = TRUE
     OFFSET $2 LIMIT $3;
   `;
 
