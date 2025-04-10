@@ -1,6 +1,10 @@
 const { logger } = require("../../utils/logger");
-const { saveTicker, saveCandle } = require("../../utils/db");
+const { saveTicker, getSymbolsForTicker} = require("../../utils/db");
 class TickerStrategy {
+  async getSymbols(exchange) {
+    return await getSymbolsForTicker(exchange.id);
+  }
+
   async watch(exchange, symbols) {
     try {
       return Object.values(await exchange.watchTickers(symbols))[0];
@@ -9,14 +13,9 @@ class TickerStrategy {
     }
   }
 
-  async saveTicker(exchange, ticker) {
+  async save(exchange, ticker) {
     const [baseSymbol, quoteSymbol] = ticker.symbol.split("/");
     await saveTicker(exchange.id, baseSymbol, quoteSymbol, ticker);
-  }
-
-  async saveCandle(exchange, timeframe, candle) {
-    const [baseSymbol, quoteSymbol] = candle.symbol.split("/");
-    await saveCandle(exchange.id, baseSymbol, quoteSymbol, timeframe, candle);
   }
 }
 

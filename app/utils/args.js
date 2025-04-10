@@ -13,6 +13,8 @@ const parseCliArgs = () => {
 
   const exchange = args.exchange.toLowerCase();
   const type = args.type.toLowerCase();
+  const debug = args.debug;
+  const symbol = args.symbol;
 
   let candle;
   if (args.candle) {
@@ -22,7 +24,7 @@ const parseCliArgs = () => {
     candle = args.candle;
   }
 
-  return { exchange, type, candle };
+  return { exchange, type, candle, debug, symbol };
 };
 
 module.exports = { parseCliArgs };

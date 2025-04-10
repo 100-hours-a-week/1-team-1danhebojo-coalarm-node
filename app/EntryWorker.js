@@ -21,11 +21,18 @@ const setupGracefulShutdown = (worker) => {
 (async () => {
   try {
     // 실행 옵션 입력받기
-    const { exchange, type, candle } = parseCliArgs();
+    const { exchange, type, timeframe, debug, symbol } = parseCliArgs();
 
     // 워커 생성
-    const worker = WorkerFactory.create(exchange, type, candle);
-    logger.info(`${type} 유형의 워커 생성 (캔들 단위: ${candle ?? '지정 안함'}, 거래소: ${exchange ?? '지정 안함'})`);
+    const worker = WorkerFactory.create({
+      exchangeId: exchange,
+      type: type,
+      timeframe: timeframe,
+      debug: debug,
+      symbol: symbol
+    });
+
+    logger.info(`${type} 유형의 워커 생성 (캔들 단위: ${timeframe ?? '지정 안함'}, 거래소: ${exchange ?? '지정 안함'})`);
 
     setupGracefulShutdown(worker);
 
