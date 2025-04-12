@@ -45,3 +45,6 @@ out/
 
 ### shared ###
 /app/symbols/
+
+### config
+*.config.js
