@@ -39,6 +39,9 @@ class BaseWorker {
       default: return 60_000;
     }
   }
+  sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
 }
 
 module.exports = BaseWorker;

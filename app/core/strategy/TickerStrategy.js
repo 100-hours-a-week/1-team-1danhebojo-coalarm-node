@@ -1,22 +1,22 @@
 const { logger } = require("../../utils/logger");
-const { saveTicker, saveCandle } = require("../../utils/db");
+const { saveTicker, getSymbolsForTicker} = require("../../utils/query");
 class TickerStrategy {
+  async getSymbols(exchange, offset, limit) {
+    return await getSymbolsForTicker(exchange.id, offset, limit);
+  }
+
   async watch(exchange, symbols) {
     try {
-      return Object.values(await exchange.watchTickers(symbols))[0];
+      const tickers = Object.values(await exchange.watchTickers(symbols))
+      return tickers[0];
     } catch (e) {
       logger.error(`${exchange.name} 거래소의 티커 데이터를 받아오는 데에 실패했습니다.`, e);
     }
   }
 
-  async saveTicker(exchange, ticker) {
+  async save(exchange, ticker) {
     const [baseSymbol, quoteSymbol] = ticker.symbol.split("/");
     await saveTicker(exchange.id, baseSymbol, quoteSymbol, ticker);
-  }
-
-  async saveCandle(exchange, timeframe, candle) {
-    const [baseSymbol, quoteSymbol] = candle.symbol.split("/");
-    await saveCandle(exchange.id, baseSymbol, quoteSymbol, timeframe, candle);
   }
 }
 

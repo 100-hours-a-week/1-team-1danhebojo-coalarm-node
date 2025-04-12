@@ -1,0 +1,27 @@
+# Node modules & package lock (로컬 환경의 의존성은 무시)
+node_modules
+npm-debug.log
+yarn.lock
+
+# OS / Editor 관련 불필요 파일
+.DS_Store
+*.swp
+*.swo
+.idea
+.vscode
+*.log
+.gitignore
+.github
+.git
+.husky
+
+# 문서 및 설정 파일
+README.md
+CHANGELOG.md
+Dockerfile
+commitlint.config.cjs
+eslint.config.cjs
+.releaserc.json
+
+# 테스트/모의 데이터 (실제 운영에 필요 없다면)
+app/symbols/
