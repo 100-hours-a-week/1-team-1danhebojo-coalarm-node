@@ -1,5 +1,5 @@
 const { logger } = require("../../utils/logger");
-const { saveCandles, getOldestSavedCandle} = require("../../utils/db");
+const { saveCandles, getOldestSavedCandle} = require("../../utils/query");
 class BackFillStrategy {
 
   async fetch(exchange, symbol, timeframe, since, limit) {

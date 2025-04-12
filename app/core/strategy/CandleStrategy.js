@@ -1,5 +1,5 @@
 const { logger } = require("../../utils/logger");
-const { saveCandle, getSymbolsForCandle} = require("../../utils/db");
+const { saveCandle, getSymbolsForCandle} = require("../../utils/query");
 class CandleStrategy {
 
   async getSymbols(exchange, offset, limit) {

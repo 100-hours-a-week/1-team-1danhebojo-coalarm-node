@@ -1,4 +1,4 @@
-const { saveSymbols } = require("../../utils/db");
+const { saveSymbols } = require("../../utils/query");
 class TickerStrategy {
 
   async saveSymbols(symbols) {

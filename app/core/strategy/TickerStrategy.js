@@ -1,5 +1,5 @@
 const { logger } = require("../../utils/logger");
-const { saveTicker, getSymbolsForTicker} = require("../../utils/db");
+const { saveTicker, getSymbolsForTicker} = require("../../utils/query");
 class TickerStrategy {
   async getSymbols(exchange, offset, limit) {
     return await getSymbolsForTicker(exchange.id, offset, limit);

@@ -1,13 +1,15 @@
 require("dotenv").config(); // .env 파일 로드
 
+const pool = require("./utils/db");
 const WorkerFactory = require("./core/worker/WorkerFactory");
 const { parseCliArgs } = require("./utils/args");
 const { logger } = require("./utils/logger");
 
 const setupGracefulShutdown = (worker) => {
-  const shutdown = () => {
+  const shutdown = async () => {
     logger.info(`프로세스 종료 신호 수신. 워커 중지 중...`);
     worker.stop();
+    await pool.end();
     setTimeout(() => {
       logger.info(`프로세스 정상 종료`);
       process.exit(0);
@@ -46,10 +48,11 @@ const setupGracefulShutdown = (worker) => {
 
     setupGracefulShutdown(worker);
 
+    await pool.connect();
     await worker.run();
   } catch (e) {
     logger.error(`프로세스 비정상 종료: `, e);
-    console.error(e.stack);
+    await pool.end();
     process.exit(1);
   }
 })();
