@@ -12,11 +12,15 @@ const parseCliArgs = () => {
   }
   const type = args.type.toLowerCase();
   const exchange = args.exchange?.toLowerCase();
-  const debug = args.debug?.toLowerCase();
   const symbol = args.symbol;
 
   const offset = args.offset;
   const limit = args.limit;
+
+  const debug = args.debug?.toLowerCase();
+  const tps = args.tps;
+  const queueSize = args.queueSize;
+  const ttl = args.ttl;
 
   let timeframe;
   if (args.timeframe) {
@@ -26,7 +30,7 @@ const parseCliArgs = () => {
     timeframe = args.timeframe;
   }
 
-  return { exchange, type, timeframe, debug, symbol, offset, limit };
+  return { exchange, type, timeframe, debug, symbol, offset, limit, tps, queueSize, ttl };
 };
 
 module.exports = { parseCliArgs };
