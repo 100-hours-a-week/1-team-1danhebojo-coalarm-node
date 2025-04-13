@@ -24,12 +24,15 @@ class WorkerFactory {
       symbol,
       offset,
       limit,
+      tps,
+      queueSize,
+      ttl
   }) {
     switch (type) {
       case "ticker":
         return new TickerWorker({
               exchangeId: exchangeId,
-              strategy: debug ? new MockTickerStrategy() : new TickerStrategy(),
+              strategy: debug ? new MockTickerStrategy({tps, queueSize, ttl}) : new TickerStrategy(),
               offset: offset,
               limit: limit
         });
