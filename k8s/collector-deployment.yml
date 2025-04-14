@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node-collector
+  labels:
+    app: node-collector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: node-collector
+  template:
+    metadata:
+      labels:
+        app: node-collector
+    spec:
+      nodeSelector:
+        node-type: collector
+      containers:
+        - name: node-collector
+          image: gsandoo/coalarm-node:latest
+          imagePullPolicy: Always
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+      restartPolicy: Always
