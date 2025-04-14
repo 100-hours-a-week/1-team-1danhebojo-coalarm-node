@@ -1,0 +1,21 @@
+{
+  "name": "1-team-1danhebojo-coalarm-node-app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "ccxt": "^4.4.68",
+    "dotenv": "^16.4.7",
+    "minimist": "^1.2.8",
+    "node-cron": "^3.0.3",
+    "pg": "^8.14.1",
+    "pm2": "^6.0.5",
+    "winston": "^3.17.0"
+  },
+  "private": "false"
+}
