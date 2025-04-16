@@ -1,4 +1,5 @@
 const { logger } = require("../utils/logger");
+const {saveTicker} = require("../utils/query");
 class MockTickerStrategy {
 
   constructor({tps = 100, queueSize = 1000, ttl = 3000}) {
@@ -12,6 +13,8 @@ class MockTickerStrategy {
   }
 
   _startProducer() {
+    logger.info(`[MockTickerStrategy] ${this.interval.toFixed(2)}ms 간격으로 티커 생성 시작 (TPS=${this.tps})`);
+
     setInterval(() => {
 
       if (this.queue.length >= this.queueSize) {
@@ -41,8 +44,6 @@ class MockTickerStrategy {
 
       this.queue.push(ticker);
     }, this.interval);
-
-    logger.info(`[MockTickerStrategy] ${this.interval.toFixed(2)}ms 간격으로 티커 생성 시작 (TPS=${this.tps})`);
   }
   async getSymbols(exchange, offset, limit) {
     logger.info('[MockTickerStrategy] 티커 심볼을 로드했습니다.');
@@ -57,7 +58,7 @@ class MockTickerStrategy {
     const ticker = this.queue.shift();
 
     const age = Date.now() - ticker.timestamp;
-    if (age > this.ttl) {
+    if (age / 1000 > this.ttl) {
       logger.info(`[MockTickerStrategy] TTL 초과 티커 무시됨 (지연: ${age}ms)`);
       return null;
     }
@@ -66,7 +67,8 @@ class MockTickerStrategy {
   }
 
   async save(exchange, ticker) {
-    logger.info('[MockTickerStrategy] 티커 데이터를 저장했습니다.');
+    const [baseSymbol, quoteSymbol] = ticker.symbol.split("/");
+    await saveTicker(exchange.id, baseSymbol, quoteSymbol, ticker);
   }
 }
 
