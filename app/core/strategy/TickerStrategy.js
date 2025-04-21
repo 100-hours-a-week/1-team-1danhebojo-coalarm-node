@@ -11,6 +11,7 @@ class TickerStrategy {
       return tickers[0];
     } catch (e) {
       logger.error(`${exchange.name} 거래소의 티커 데이터를 받아오는 데에 실패했습니다.`, e);
+      return null;
     }
   }
 

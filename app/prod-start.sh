@@ -1,6 +1,6 @@
 #!/bin/bash
 
- echo "🟢 PM2 워커 순차 실행"
+ echo "🟢 [운영] PM2 워커 순차 실행"
 
  # 설정 값
  LIMIT=200
@@ -19,11 +19,11 @@
      for ((offset=0; offset<total; offset+=LIMIT)); do
        name="${type}-${exchange}-${offset}"
        echo "▶️ 실행 중: $name"
-       pm2 start ecosystem.config.js --only "$name"
+       pm2 start ecosystem.prod.config.js --only "$name"
        sleep 0.5
      done
    done
  done
 
- echo "✅ 모든 워커 실행 완료"
+ echo "✅ [운영] 모든 워커 실행 완료"
  pm2 logs
