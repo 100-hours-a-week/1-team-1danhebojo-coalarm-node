@@ -43,8 +43,5 @@ node_modules
 /logs
 *.log
 
-### shared ###
-/app/symbols/
-
 ### config
 *.config.js

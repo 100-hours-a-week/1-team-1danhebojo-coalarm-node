@@ -22,6 +22,3 @@ Dockerfile
 commitlint.config.cjs
 eslint.config.cjs
 .releaserc.json
-
-# 테스트/모의 데이터 (실제 운영에 필요 없다면)
-app/symbols/
