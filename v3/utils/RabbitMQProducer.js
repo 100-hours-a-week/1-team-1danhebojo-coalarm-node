@@ -21,20 +21,20 @@ class RabbitMQProducer {
                 password: process.env.RABBITMQ_PASS,
             });
 
-            this.connection.on("error", (err) => {
+            this.connection.on("error", async (err) => {
                 logger.error(`[RabbitMQ] 연결에 오류가 발생했습니다: ${err.message}`);
-                this._retryConnect();
+                await this._retryConnect();
             });
 
-            this.connection.on("close", () => {
+            this.connection.on("close", async () => {
                 logger.warn("[RabbitMQ] 연결이 닫혔습니다");
-                this._retryConnect();
+                await this._retryConnect();
             });
 
             logger.info("[RabbitMQ] 연결에 성공했습니다");
         } catch (err) {
             logger.error(`[RabbitMQ] 연결에 실패했습니다: ${err.message}`);
-            this._retryConnect();
+            await this._retryConnect();
         }
     }
 
@@ -80,7 +80,7 @@ class RabbitMQProducer {
         this.connection = null;
     }
 
-    async publish(exchangeName, routingKey, message) {
+    async publish({exchangeName, routingKey, message}) {
         let delay = 50;
 
         while (true) {

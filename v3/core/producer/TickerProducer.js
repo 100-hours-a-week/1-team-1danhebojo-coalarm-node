@@ -27,12 +27,13 @@ class TickerProducer {
         while (true) {
             try {
                 const ticker = await this.strategy.watch(exchange, symbols);
-                await this.strategy.publish(
-                    `ticker.${exchange.id}`,
-                    `${exchange.id}.${ticker.symbol}.ticker`,
-                )
+                await this.strategy.publish({
+                    exchangeName: process.env.MQ_EXCHANGE_NAME,
+                    routingKey: `ticker.${exchange.id}.${ticker.symbol}`,
+                    message: ticker
+                })
             } catch (e) {
-                logger.error(`[${this.exchangeId}] watch 에러 발생: ${e.message}`);
+                logger.error(`[TickerProducer] ${this.exchangeId} watch 에러 발생: ${e.message}`);
             }
         }
     }
