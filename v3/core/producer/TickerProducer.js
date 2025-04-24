@@ -19,10 +19,10 @@ class TickerProducer {
         await Promise.allSettled(chunks.map(async (chunk, idx) => {
             const exchange = await this.strategy.createExchangeInstance(this.exchangeId);
             this.retryBuffers.set(idx, []);
-            await this.startWatching(idx, exchange, chunk);
+            this.startWatching(idx, exchange, chunk);
         }));
 
-        setInterval(() => this.flushAllRetryBuffers(), 3000);
+        this._startFlushRetryLoop();
     }
 
     async startWatching(idx, exchange, symbols) {
@@ -45,29 +45,21 @@ class TickerProducer {
                     onComplete: (e, ok) => {
                         if (e) {
                             logger.warn(`[TickerProducer] ${this.exchangeId} ${idx} 번째 Producer에서 publish 실패: ${e.message}`);
-                            if (!this.retryBuffers.has(idx)) this.retryBuffers.set(idx, []);
-                            this.retryBuffers.get(idx).push({
-                                exchangeName: process.env.MQ_EXCHANGE_NAME,
-                                routingKey: `ticker.${exchange.id}.${ticker.symbol}`,
-                                message: ticker,
-                            })
+                            this._enqueueRetryBuffer(idx, exchange, ticker);
                         }
                     }
                 })
             } catch (e) {
                 logger.error(`[TickerProducer] ${this.exchangeId} ${idx} 번째 Producer에서 publish 에러 발생: ${e.message}`);
-                if (!this.retryBuffers.has(idx)) this.retryBuffers.set(idx, []);
-                this.retryBuffers.get(idx).push({
-                    exchangeName: process.env.MQ_EXCHANGE_NAME,
-                    routingKey: `ticker.${exchange.id}.${ticker.symbol}`,
-                    message: ticker,
-                })
+                this._enqueueRetryBuffer(idx, exchange, ticker);
             }
         }
     }
 
     async flushAllRetryBuffers() {
         for (const [idx, buffer] of this.retryBuffers.entries()) {
+            if (!buffer.length) continue;
+
             const remaining = [];
             for (const item of buffer) {
                 await this.strategy.publish({
@@ -81,6 +73,28 @@ class TickerProducer {
             }
             this.retryBuffers.set(idx, remaining);
         }
+    }
+    _enqueueRetryBuffer(idx, exchange, ticker) {
+        if (!this.retryBuffers.has(idx)) this.retryBuffers.set(idx, []);
+        this.retryBuffers.get(idx).push({
+            exchangeName: process.env.MQ_EXCHANGE_NAME,
+            routingKey: `ticker.${exchange.id}.${ticker.symbol}`,
+            message: ticker,
+        })
+    }
+
+    _startFlushRetryLoop() {
+        const flushRetryLoop = async () => {
+            try {
+                await this.flushAllRetryBuffers();
+            } catch (e) {
+                logger.error(`[TickerProducer] 재시도 버퍼 flush 실패: ${e.message}`);
+            } finally {
+                setTimeout(flushRetryLoop, 3000);
+            }
+        };
+
+        flushRetryLoop(); // 첫 실행
     }
 }
 
