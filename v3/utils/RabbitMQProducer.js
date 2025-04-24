@@ -64,7 +64,7 @@ class RabbitMQProducer {
         if (cachedChannel) return cachedChannel;
 
         // Channel이 없거나 유효하지 않은 경우 새로 생성한다.
-        const newChannel = await this.connection.createChannel();
+        const newChannel = await this.connection.createConfirmChannel();
         await newChannel.assertExchange(exchangeName, "topic", { durable: true });
 
         this.channels.set(exchangeName, newChannel);
@@ -80,33 +80,16 @@ class RabbitMQProducer {
         this.connection = null;
     }
 
-    async publish({exchangeName, routingKey, message}) {
-        let delay = 50;
+    async publish({exchangeName, routingKey, message, onComplete}) {
+        const channel = await this.getChannel(exchangeName);
 
-        while (true) {
-            try {
-                const channel = await this.getChannel(exchangeName);
-                const ok = channel.publish(
-                    exchangeName,
-                    routingKey,
-                    Buffer.from(JSON.stringify(message)),
-                    { persistent: true }
-                );
-
-                if (ok) return;
-
-                logger.warn(`[RabbitMQ] Write Buffer 가득 참 : ${routingKey}`);
-                // TODO : 메트릭 수집
-
-                await new Promise(res => setTimeout(res, delay));
-                delay = Math.min(delay * 2, 1000);
-
-            } catch (err) {
-                logger.error(`[RabbitMQ] 메시지 발행 실패: ${err.message}`);
-                await new Promise(res => setTimeout(res, delay));
-                delay = Math.min(delay * 2, 1000);
-            }
-        }
+        channel.publish(
+            exchangeName,
+            routingKey,
+            message,
+            { persistent: true },
+            (err, ok) => onComplete(err, ok)
+        );
     }
 
 }

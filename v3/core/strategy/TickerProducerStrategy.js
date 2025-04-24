@@ -34,11 +34,12 @@ class TickerProducerStrategy {
         return Object.values(ticker)[0];
     }
 
-    async publish({exchangeName, routingKey, message}) {
+    async publish({exchangeName, routingKey, message, onComplete}) {
         await mq.publish({
             exchangeName,
             routingKey,
-            message: Buffer.from(JSON.stringify(message))
+            message: Buffer.from(JSON.stringify(message)),
+            onComplete
         });
     }
 }
