@@ -18,16 +18,16 @@ class MockTickerProducerStrategy {
         });
     }
 
-    async watch(exchange, symbols) {
+    async watch({exchange, symbols}) {
         return await exchange.watchTickers(symbols);
     }
 
-    async publish(exchangeName, routingKey, message) {
-        await mq.publish(
+    async publish({exchangeName, routingKey, message}) {
+        await mq.publish({
             exchangeName,
             routingKey,
-            Buffer.from(JSON.stringify(message))
-        );
+            message: Buffer.from(JSON.stringify(message))
+        });
     }
 }
 

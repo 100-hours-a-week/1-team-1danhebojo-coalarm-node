@@ -29,12 +29,17 @@ class TickerProducerStrategy {
         });
     }
 
-    async watch(exchange, symbols) {
-        return await exchange.watchTickers(symbols);
+    async watch({exchange, symbols}) {
+        const ticker = await exchange.watchTickers(symbols);
+        return Object.values(ticker)[0];
     }
 
-    async publish() {
-        await mq.publish();
+    async publish({exchangeName, routingKey, message}) {
+        await mq.publish({
+            exchangeName,
+            routingKey,
+            message: Buffer.from(JSON.stringify(message))
+        });
     }
 }
 

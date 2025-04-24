@@ -23,6 +23,28 @@ app.post("/report", (req, res) => {
     res.status(200).json({ status: "OK" });
 });
 
+app.post("/report/producer", (req, res) => {
+    const { workerId, tps, error, latency } = req.body;
+
+    if (!workerId) {
+        return res.status(400).json({ error: "Invalid Payload" });
+    }
+
+    updateWorkerMetrics({workerId, tps, error, latency});
+    res.status(200).json({ status: "OK" });
+});
+
+app.post("/report/consumer", (req, res) => {
+    const { workerId, tps, error, latency } = req.body;
+
+    if (!workerId) {
+        return res.status(400).json({ error: "Invalid Payload" });
+    }
+
+    updateWorkerMetrics({workerId, tps, error, latency});
+    res.status(200).json({ status: "OK" });
+});
+
 // Prometheus scrape endpoint
 app.get("/metrics", async (req, res) => {
     res.set("Content-Type", register.contentType);

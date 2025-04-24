@@ -12,6 +12,7 @@
   "dependencies": {
     "amqplib": "^0.10.7",
     "ccxt": "^4.4.77",
+    "dotenv": "^16.5.0",
     "minimist": "^1.2.8",
     "winston": "^3.17.0"
   }
