@@ -12,18 +12,21 @@ class TickerConsumer {
             exchangeName: process.env.MQ_EXCHANGE_NAME,
             queueName: process.env.MQ_QUEUE_NAME,
             bindingKey: process.env.MQ_BINDING_KEY,
-            prefetch: process.env.MQ_PREFETCH,
-            onMessage: async (data, msg, channel) => {
-                this.buffer.push(data);
+            prefetch: parseInt(process.env.MQ_PREFETCH || "50", 10),
+            onMessage: async (msg, channel) => {
+
+                this.buffer.push(msg);
 
                 if (this.buffer.length >= this.BATCH_SIZE) {
-                    const tickers = this.buffer.splice(0, this.BATCH_SIZE);
+                    const batch = this.buffer.splice(0, this.BATCH_SIZE);
+                    const tickers = batch.map(msg => JSON.parse(msg.content.toString()));
                     try {
                         await this.strategy.save(this.exchangeId, tickers);
-                        channel.ack(msg);
+                        const last = batch[batch.length - 1];
+                        channel.ack(last, true);
                     } catch (e) {
                         logger.error('DB 저장 실패', e);
-                        channel.nack(msg, false, true);
+                        batch.forEach(msg => channel.nack(msg, false, true));
                     }
                 }
             }

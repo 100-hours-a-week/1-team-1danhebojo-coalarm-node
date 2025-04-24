@@ -36,7 +36,7 @@ const setupGracefulShutdown = (worker) => {
             type,
         });
 
-        logger.info(`${type} 유형의 Producer 생성 거래소: ${exchangeId ?? '지정 안함'})`);
+        logger.info(`${type} 유형의 Consumer 생성 거래소: ${exchangeId ?? '지정 안함'})`);
 
         setupGracefulShutdown(worker);
         await mq.connect();

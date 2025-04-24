@@ -79,7 +79,7 @@ class RabbitMQConsumer {
         this.connection = null;
     }
 
-    async consume({ exchangeName, queueName, bindingKey, prefetch = 100, onMessage }) {
+    async consume({ exchangeName, queueName, bindingKey, prefetch, onMessage }) {
         const channel = await this.getChannel(exchangeName);
 
         await channel.assertQueue(queueName, { durable: true });
@@ -88,14 +88,7 @@ class RabbitMQConsumer {
 
         await channel.consume(queueName, async (msg) => {
             if (!msg) return;
-            try {
-                const data = JSON.parse(msg.content.toString());
-
-                await onMessage(data, msg, channel);
-            } catch (err) {
-                logger.error(`[RabbitMQ] 메시지 처리 실패: ${err.message}`);
-                channel.nack(msg, false, true); // 재처리 가능
-            }
+            await onMessage(msg, channel);
         }, {noAck: false});
     }
 }
