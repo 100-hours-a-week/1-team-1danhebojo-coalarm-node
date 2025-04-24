@@ -81,8 +81,17 @@ class RabbitMQConsumer {
 
     async consume({ exchangeName, queueName, bindingKey, prefetch, onMessage }) {
         const channel = await this.getChannel(exchangeName);
+        await channel.assertExchange('dlx.exchange', 'topic', { durable: true });
+        await channel.assertQueue('dlq.ticker', { durable: true })
+        await channel.bindQueue('dlq.ticker', 'dlx.exchange', '#');
 
-        await channel.assertQueue(queueName, { durable: true });
+        await channel.assertQueue(queueName, {
+            durable: true,
+            arguments: {
+                'x-dead-letter-exchange': 'dlx.exchange',
+                'x-dead-letter-routing-key': 'ticker.dead'
+            }
+        });
         await channel.bindQueue(queueName, exchangeName, bindingKey);
         await channel.prefetch(prefetch);
 
