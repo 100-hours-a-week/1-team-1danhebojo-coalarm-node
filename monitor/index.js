@@ -5,12 +5,15 @@ const client = require("prom-client");
 const bodyParser = require("body-parser");
 const { registerWorkerMetrics, updateWorkerMetrics } = require("./metric");
 const { registerProducerMetrics, updateProducerMetrics} = require("./metric/producerMetric")
+const { registerConsumerMetrics, updateConsumerMetrics} = require("./metric/consumerMetric")
 const app = express();
 const register = new client.Registry();
 
 const NODE_ENV = process.env.NODE_ENV;
 if (NODE_ENV === 'producer') {
     registerProducerMetrics(register);
+} else if (NODE_ENV === 'consumer') {
+    registerConsumerMetrics(register);
 } else {
     registerWorkerMetrics(register);
 }
@@ -31,53 +34,67 @@ app.post("/report", (req, res) => {
     res.status(200).json({ status: "OK" });
 });
 
-app.post("/report/producer", (req, res) => {
-    const {
-        producerId,
-        producerAvgWatchLatency,
-        producerWatchTotal,
-        producerWatchErrorTotal,
-        producerAvgPublishLatency,
-        producerPublishTotal,
-        producerPublishErrorTotal,
-        producerRetryBufferLength,
-        producerBackPressureCount
-    } = req.body;
+if (NODE_ENV === 'producer') {
+    app.post("/report/producer", (req, res) => {
+        const {
+            producerId,
+            producerAvgWatchLatency,
+            producerWatchTotal,
+            producerWatchErrorTotal,
+            producerAvgPublishLatency,
+            producerPublishTotal,
+            producerPublishErrorTotal,
+            producerRetryBufferLength,
+            producerBackPressureCount
+        } = req.body;
 
-    console.log({
-        producerId,
-        producerAvgWatchLatency,
-        producerWatchTotal,
-        producerWatchErrorTotal,
-        producerAvgPublishLatency,
-        producerPublishTotal,
-        producerPublishErrorTotal,
-        producerRetryBufferLength,
-        producerBackPressureCount
+        if (!producerId) {
+            return res.status(400).json({ error: "Invalid Payload" });
+        }
+
+        updateProducerMetrics({
+            producerId,
+            producerAvgWatchLatency,
+            producerWatchTotal,
+            producerWatchErrorTotal,
+            producerAvgPublishLatency,
+            producerPublishTotal,
+            producerPublishErrorTotal,
+            producerRetryBufferLength,
+            producerBackPressureCount
+        })
+
+        res.status(200).json({ status: "OK" });
     });
 
-    if (!producerId) {
-        return res.status(400).json({ error: "Invalid Payload" });
-    }
+}
 
-    updateProducerMetrics({
-        producerId,
-        producerAvgWatchLatency,
-        producerWatchTotal,
-        producerWatchErrorTotal,
-        producerAvgPublishLatency,
-        producerPublishTotal,
-        producerPublishErrorTotal,
-        producerRetryBufferLength,
-        producerBackPressureCount
-    })
+if (NODE_ENV === 'consumer') {
+    app.post("/report/consumer", (req, res) => {
+        const {
+            consumerId,
+            consumerTotalConsumed,
+            consumerSendToDLQTotal,
+            consumerRecoverableRetryTotal,
+            consumerAvgBatchLatency
+        } = req.body;
 
-    res.status(200).json({ status: "OK" });
-});
+        if (!consumerId) {
+            return res.status(400).json({ error: "Invalid Payload" });
+        }
 
-app.post("/report/consumer", (req, res) => {
+        updateConsumerMetrics({
+            consumerId,
+            consumerTotalConsumed,
+            consumerSendToDLQTotal,
+            consumerRecoverableRetryTotal,
+            consumerAvgBatchLatency
+        })
 
-});
+        res.status(200).json({ status: "OK" });
+    });
+}
+
 
 // Prometheus scrape endpoint
 app.get("/metrics", async (req, res) => {

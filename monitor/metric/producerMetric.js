@@ -1,10 +1,9 @@
 const client = require("prom-client");
 
-const producerWatchLatencyMetric = new client.Histogram({
+const producerWatchLatencyMetric = new client.Gauge({
     name: "producer_watch_latency_ms",
     help: "Time taken to fetch ticker data",
     labelNames: ["producerId"],
-    buckets: [50, 100, 200, 300, 500, 1000, 2000]
 });
 
 const producerWatchTotalMetric = new client.Counter({
@@ -31,11 +30,10 @@ const producerPublishErrorTotalMetric = new client.Counter({
     labelNames: ["producerId"],
 });
 
-const producerPublishLatencyMetric = new client.Histogram({
+const producerPublishLatencyMetric = new client.Gauge({
     name: "producer_publish_latency_ms",
     help: "Latency of publishing messages to MQ",
     labelNames: ["producerId"],
-    buckets: [10, 50, 100, 200, 500, 1000]
 });
 
 const producerRetryBufferLengthMetric = new client.Gauge({
@@ -91,12 +89,12 @@ function updateProducerMetrics({
         producerPublishErrorTotalMetric.inc(labels, producerPublishErrorTotal);
     }
 
-    if (typeof producerAvgWatchLatency === "number" && !isNaN(producerAvgWatchLatency)) {
-        producerWatchLatencyMetric.observe(labels, producerAvgWatchLatency);
+    if (typeof producerAvgWatchLatency === "number") {
+        producerWatchLatencyMetric.set(labels, producerAvgWatchLatency);
     }
 
-    if (typeof producerAvgPublishLatency === "number" && !isNaN(producerAvgPublishLatency)) {
-        producerPublishLatencyMetric.observe(labels, producerAvgPublishLatency);
+    if (typeof producerAvgPublishLatency === "number") {
+        producerPublishLatencyMetric.set(labels, producerAvgPublishLatency);
     }
 
     if (typeof producerRetryBufferLength === "number") {
