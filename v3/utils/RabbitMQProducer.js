@@ -83,7 +83,7 @@ class RabbitMQProducer {
     async publish({exchangeName, routingKey, message, onComplete}) {
         const channel = await this.getChannel(exchangeName);
 
-        channel.publish(
+        return channel.publish(
             exchangeName,
             routingKey,
             message,

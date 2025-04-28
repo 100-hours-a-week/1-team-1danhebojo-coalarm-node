@@ -1,14 +1,35 @@
 const {logger} = require("../../utils/logger");
+const BaseProducer = require("./BaseProducer");
 
-class TickerProducer {
+class TickerProducer extends BaseProducer {
     constructor({ exchangeId, chunkSize, strategy }) {
+        super();
         this.exchangeId = exchangeId;
         this.chunkSize = chunkSize;
         this.strategy = strategy;
         this.retryBuffers = new Map();
+        this.metrics = {
+            watchCount: new Map(),
+            watchErrorCount: new Map(),
+            watchLatencySum: new Map(),
+            publishCount: new Map(),
+            publishErrorCount: new Map(),
+            publishLatencySum: new Map(),
+            backPressureCount: new Map(),
+            retryBufferLength: new Map()
+        };
     }
 
     async run() {
+        // Prometheus Metric 수집
+        this.metricsInterval = setInterval(async () => {
+            await this.reportToMonitor({
+                producerId: `${process.pid}`,
+                ...this._getAveragedMetrics()
+            });
+            this._clearMetric();
+        }, 5000);
+
         const symbols = await this.strategy.getSymbols(this.exchangeId);
         const chunks = [];
 
@@ -31,25 +52,44 @@ class TickerProducer {
         while (true) {
             let ticker;
             try {
+                const watchStart = Date.now();
                 ticker = await this.strategy.watch({exchange, symbols});
+                const latency = Date.now() - watchStart;
+
+                this._incMap(this.metrics.watchCount, idx);
+                this._addLatency(this.metrics.watchLatencySum, idx, latency);
             } catch (e) {
+                this._incMap(this.metrics.watchErrorCount, idx);
                 logger.error(`[TickerProducer] ${this.exchangeId}의 ${idx} 번째 Producer에서 watch 에러 발생: ${e.message}`);
                 continue;
             }
 
             try {
-                await this.strategy.publish({
+                const publishStart = Date.now();
+                const ok = await this.strategy.publish({
                     exchangeName: process.env.MQ_EXCHANGE_NAME,
                     routingKey: `ticker.${exchange.id}.${ticker.symbol}`,
                     message: ticker,
                     onComplete: (e, ok) => {
                         if (e) {
+                            this._incMap(this.metrics.publishErrorCount, idx);
                             logger.warn(`[TickerProducer] ${this.exchangeId} ${idx} 번째 Producer에서 publish 실패: ${e.message}`);
                             this._enqueueRetryBuffer(idx, exchange, ticker);
+                        } else {
+                            const latency = Date.now() - publishStart;
+                            this._incMap(this.metrics.publishCount, idx);
+                            this._addLatency(this.metrics.publishLatencySum, idx, latency);
                         }
                     }
                 })
+
+                if(!ok) {
+                    this._incMap(this.metrics.backPressureCount, idx);
+                    this._enqueueRetryBuffer(idx, exchange, ticker);
+                }
+
             } catch (e) {
+                this._incMap(this.metrics.publishErrorCount, idx);
                 logger.error(`[TickerProducer] ${this.exchangeId} ${idx} 번째 Producer에서 publish 에러 발생: ${e.message}`);
                 this._enqueueRetryBuffer(idx, exchange, ticker);
             }
@@ -80,7 +120,8 @@ class TickerProducer {
             exchangeName: process.env.MQ_EXCHANGE_NAME,
             routingKey: `ticker.${exchange.id}.${ticker.symbol}`,
             message: ticker,
-        })
+        });
+        this.metrics.retryBufferLength.set(idx, this.retryBuffers.get(idx).length);
     }
 
     _startFlushRetryLoop() {
@@ -95,6 +136,53 @@ class TickerProducer {
         };
 
         flushRetryLoop(); // 첫 실행
+    }
+
+    _incMap(map, key) {
+        map.set(key, (map.get(key) || 0) + 1);
+    }
+
+    _addLatency(map, key, latency) {
+        map.set(key, (map.get(key) || 0) + latency);
+    }
+
+    _clearMetric() {
+        for (const metric of Object.values(this.metrics)) {
+            metric.clear();
+        }
+    }
+
+    _getAveragedMetrics() {
+        const result = {};
+
+        // watch latency 평균
+        let totalWatchLatency = 0;
+        let totalWatchCount = 0;
+        for (const [idx, sum] of this.metrics.watchLatencySum.entries()) {
+            totalWatchLatency += sum;
+            totalWatchCount += this.metrics.watchCount.get(idx) || 0;
+        }
+
+        result["producerAvgWatchLatency"] = totalWatchCount > 0 ? totalWatchLatency / totalWatchCount : 0;
+
+        // publish latency 평균
+        let totalPublishLatency = 0;
+        let totalPublishCount = 0;
+        for (const [idx, sum] of this.metrics.publishLatencySum.entries()) {
+            totalPublishLatency += sum;
+            totalPublishCount += this.metrics.publishCount.get(idx) || 0;
+        }
+        result["producerAvgPublishLatency"] = totalPublishCount > 0 ? totalPublishLatency / totalPublishCount : 0;
+
+        // total counts
+        result["producerWatchTotal"] = Array.from(this.metrics.watchCount.values()).reduce((a, b) => a + b, 0);
+        result["producerWatchErrorTotal"] = Array.from(this.metrics.watchErrorCount.values()).reduce((a, b) => a + b, 0);
+        result["producerPublishTotal"] = Array.from(this.metrics.publishCount.values()).reduce((a, b) => a + b, 0);
+        result["producerPublishErrorTotal"] = Array.from(this.metrics.publishErrorCount.values()).reduce((a, b) => a + b, 0);
+        result["producerRetryBufferLength"] = Array.from(this.metrics.retryBufferLength.values()).reduce((a, b) => a + b, 0);
+        result["producerBackPressureCount"] = Array.from(this.metrics.backPressureCount.values()).reduce((a, b) => a + b, 0);
+
+        return result;
     }
 }
 
