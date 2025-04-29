@@ -24,7 +24,7 @@ class TickerProducer extends BaseProducer {
         // Prometheus Metric 수집
         this.metricsInterval = setInterval(async () => {
             await this.reportToMonitor({
-                producerId: `${process.pid}`,
+                producerId: process.env.PRODUCER_ID ?? `${process.pid}`,
                 ...this._getAveragedMetrics()
             });
             this._clearMetric();

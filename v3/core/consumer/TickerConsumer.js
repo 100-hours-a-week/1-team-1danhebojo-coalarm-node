@@ -23,7 +23,7 @@ class TickerConsumer extends BaseConsumer {
         await this.strategy.consume({
             exchangeName: process.env.MQ_EXCHANGE_NAME,
             queueName: process.env.MQ_QUEUE_NAME,
-            bindingKey: process.env.MQ_BINDING_KEY,
+            bindingKey: `ticker.${this.exchangeId}.*`,
             prefetch: parseInt(process.env.MQ_PREFETCH || "50", 10),
             onMessage: async (msg, channel) => {
                 this.buffer.push(msg);
@@ -97,7 +97,7 @@ class TickerConsumer extends BaseConsumer {
         const avgBatchLatency = batchCount > 0 ? batchLatencySum / batchCount : 0;
 
         await this.reportToMonitor({
-            consumerId: `${process.pid}`,
+            consumerId: process.env.CONSUMER_ID ?? `${process.pid}`,
             consumerTotalConsumed: totalConsumed,
             consumerSendToDLQTotal: sendToDLQTotal,
             consumerRecoverableRetryTotal: recoverableRetryTotal,
