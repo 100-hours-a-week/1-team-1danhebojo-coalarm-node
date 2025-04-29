@@ -6,25 +6,25 @@ const producerWatchLatencyMetric = new client.Gauge({
     labelNames: ["producerId"],
 });
 
-const producerWatchTotalMetric = new client.Counter({
+const producerWatchTotalMetric = new client.Gauge({
     name: "producer_watch_total",
     help: "Number of successful watch() calls",
     labelNames: ["producerId"],
 });
 
-const producerWatchErrorTotalMetric = new client.Counter({
+const producerWatchErrorTotalMetric = new client.Gauge({
     name: "producer_watch_error_total",
     help: "Number of failed watch() calls",
     labelNames: ["producerId"],
 });
 
-const producerPublishTotalMetric = new client.Counter({
+const producerPublishTotalMetric = new client.Gauge({
     name: "producer_publish_total",
     help: "Number of successful publish() calls",
     labelNames: ["producerId"],
 });
 
-const producerPublishErrorTotalMetric = new client.Counter({
+const producerPublishErrorTotalMetric = new client.Gauge({
     name: "producer_publish_error_total",
     help: "Number of failed publish() calls",
     labelNames: ["producerId"],
@@ -42,7 +42,7 @@ const producerRetryBufferLengthMetric = new client.Gauge({
     labelNames: ["producerId"],
 });
 
-const producerBackPressureCountMetric = new client.Counter({
+const producerBackPressureCountMetric = new client.Gauge({
     name: "producer_back_pressure_count",
     help: "Number of Back Pressure Count",
     labelNames: ["producerId"],
@@ -74,19 +74,19 @@ function updateProducerMetrics({
     const labels = { producerId: String(producerId) };
 
     if (typeof producerWatchTotal === "number") {
-        producerWatchTotalMetric.inc(labels, producerWatchTotal);
+        producerWatchTotalMetric.set(labels, producerWatchTotal);
     }
 
     if (typeof producerWatchErrorTotal === "number") {
-        producerWatchErrorTotalMetric.inc(labels, producerWatchErrorTotal);
+        producerWatchErrorTotalMetric.set(labels, producerWatchErrorTotal);
     }
 
     if (typeof producerPublishTotal === "number") {
-        producerPublishTotalMetric.inc(labels, producerPublishTotal);
+        producerPublishTotalMetric.set(labels, producerPublishTotal);
     }
 
     if (typeof producerPublishErrorTotal === "number") {
-        producerPublishErrorTotalMetric.inc(labels, producerPublishErrorTotal);
+        producerPublishErrorTotalMetric.set(labels, producerPublishErrorTotal);
     }
 
     if (typeof producerAvgWatchLatency === "number") {
@@ -102,7 +102,7 @@ function updateProducerMetrics({
     }
 
     if (typeof producerBackPressureCount === "number") {
-        producerBackPressureCountMetric.inc(labels, producerBackPressureCount);
+        producerBackPressureCountMetric.set(labels, producerBackPressureCount);
     }
 }
 

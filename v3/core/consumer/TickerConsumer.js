@@ -82,7 +82,7 @@ class TickerConsumer extends BaseConsumer {
             } finally {
                 this._clearMetrics();
             }
-        }, 5000);
+        }, 1000);
     }
 
     async _reportMetrics() {

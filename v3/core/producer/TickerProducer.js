@@ -28,7 +28,7 @@ class TickerProducer extends BaseProducer {
                 ...this._getAveragedMetrics()
             });
             this._clearMetric();
-        }, 5000);
+        }, 1000);
 
         const symbols = await this.strategy.getSymbols(this.exchangeId);
         const chunks = [];
