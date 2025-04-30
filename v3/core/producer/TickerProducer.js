@@ -84,6 +84,7 @@ class TickerProducer extends BaseProducer {
                 })
 
                 if(!ok) {
+                    logger.info(`retry buffer enqueue`)
                     this._incMap(this.metrics.backPressureCount, idx);
                     this._enqueueRetryBuffer(idx, exchange, ticker);
                 }
@@ -102,6 +103,7 @@ class TickerProducer extends BaseProducer {
 
             const remaining = [];
             for (const item of buffer) {
+                logger.info(`retry publish`)
                 await this.strategy.publish({
                     ...item,
                     onComplete: (e, ok) => {

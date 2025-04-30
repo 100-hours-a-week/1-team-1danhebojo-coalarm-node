@@ -23,12 +23,14 @@ class MockTickerProducerStrategy {
     }
 
     async publish({exchangeName, routingKey, message, onComplete}) {
-        await mq.publish({
+        const ok = await mq.publish({
             exchangeName,
             routingKey,
             message: Buffer.from(JSON.stringify(message)),
             onComplete
         });
+
+        return ok;
     }
 }
 
