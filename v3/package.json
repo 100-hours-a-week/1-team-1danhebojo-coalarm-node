@@ -1,0 +1,21 @@
+{
+  "name": "v3",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "amqplib": "^0.10.7",
+    "axios": "^1.8.4",
+    "ccxt": "^4.4.77",
+    "dotenv": "^16.5.0",
+    "minimist": "^1.2.8",
+    "pg": "^8.15.5",
+    "winston": "^3.17.0"
+  }
+}

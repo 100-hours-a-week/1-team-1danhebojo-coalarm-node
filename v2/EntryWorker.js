@@ -30,7 +30,10 @@ const setupGracefulShutdown = (worker) => {
       debug,
       symbol,
       offset,
-      limit
+      limit,
+      tps,
+      queueSize,
+      ttl
     } = parseCliArgs();
 
     // 워커 생성
@@ -41,7 +44,10 @@ const setupGracefulShutdown = (worker) => {
       debug: debug,
       symbol: symbol,
       offset: offset,
-      limit: limit
+      limit: limit,
+      tps: tps,
+      queueSize: queueSize,
+      ttl: ttl
     });
 
     logger.info(`${type} 유형의 워커 생성 (캔들 단위: ${timeframe ?? '지정 안함'}, 거래소: ${exchange ?? '지정 안함'})`);

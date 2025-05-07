@@ -36,15 +36,12 @@ out/
 ### VS Code ###
 .vscode/
 
-/node_modules
+node_modules
 .env
 
 ### log ###
 /logs
 *.log
-
-### shared ###
-/app/symbols/
 
 ### config
 *.config.js

@@ -1,3 +1,6 @@
+const {logger} = require("../../utils/logger");
+const axios = require("axios");
+
 class BaseWorker {
   constructor(exchangeId, strategy) {
     const ccxt = require("ccxt");
@@ -37,6 +40,14 @@ class BaseWorker {
       case '1h': return 3_600_000;
       case '1d': return 86_400_000;
       default: return 60_000;
+    }
+  }
+
+  async reportToMonitor(metric) {
+    try {
+      await axios.post(process.env.MONITORING_URL, metric)
+    } catch (e) {
+      logger.error(`메트릭 전송 실패`, e);
     }
   }
   sleep(ms) {
